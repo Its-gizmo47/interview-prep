@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep :: Part 5 — Database &amp; SQL</title>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --surface:#11151c;
+    --surface-alt:#171c26;
+    --border:#232936;
+    --text:#d7dce3;
+    --text-dim:#8b93a1;
+    --text-faint:#5c6472;
+    --accent:#e3b341;
+    --accent-dim:#8a6d2a;
+    --cyan:#5fd3bc;
+    --red:#e8735c;
+    --green:#6fcf97;
+    --mono: 'SF Mono', 'Fira Code', Consolas, Menlo, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.65; }
+  ::selection{background:var(--accent); color:#161616;}
+  a{color:var(--cyan);}
+  code, pre{font-family:var(--mono);}
+  code{background:var(--surface-alt); padding:2px 6px; border-radius:4px; color:var(--accent); font-size:0.87em;}
+
+  #app{display:flex; min-height:100vh;}
+  #sidebar{
+    width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+    position:fixed; top:0; left:0; bottom:0; overflow-y:auto; padding:20px 16px 40px;
+  }
+  #main{margin-left:300px; flex:1; min-width:0; padding:0;}
+  @media (max-width: 900px){
+    #sidebar{position:relative; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);}
+    #main{margin-left:0;}
+    #app{flex-direction:column;}
+  }
+
+  .brand{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:0.5px; margin-bottom:4px;}
+  .brand-title{font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:18px; font-weight:600;}
+  #search{
+    width:100%; padding:9px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:6px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+  .search-hint{font-size:11px; color:var(--text-faint); margin-bottom:18px; font-family:var(--mono);}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--bg); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s;}
+
+  .chapters{list-style:none; padding:0; margin:0 0 20px;}
+  .chapters li{margin-bottom:2px;}
+  .chapters a{
+    display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text-dim);
+    font-size:13px; padding:7px 8px; border-radius:var(--radius);
+  }
+  .chapters a.active, .chapters li.current a{color:var(--accent); background:var(--surface-alt);}
+  .chapters .chnum{font-family:var(--mono); color:var(--text-faint); font-size:11px; width:18px; flex-shrink:0;}
+  .chapters li.current .chnum{color:var(--accent);}
+  .chapters .soon{font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-left:auto;}
+  .chapters .done-tag{font-size:10px; color:var(--green); font-family:var(--mono); margin-left:auto;}
+
+  .toc{list-style:none; padding:0; margin:0;}
+  .toc-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .toc li a{
+    display:block; text-decoration:none; color:var(--text-dim); font-size:12.5px; padding:5px 8px 5px 20px;
+    border-left:2px solid transparent; border-radius:0 4px 4px 0;
+  }
+  .toc li a:hover{color:var(--text);}
+  .toc li a.done{color:var(--green);}
+  .toc li a.done::before{content:"✓ "; color:var(--green);}
+
+  .hero{
+    padding:56px 48px 40px; border-bottom:1px solid var(--border);
+    background: radial-gradient(600px 200px at 85% -20%, rgba(227,179,65,0.08), transparent);
+  }
+  .hero-eyebrow{font-family:var(--mono); color:var(--text-faint); font-size:12px; margin-bottom:10px;}
+  #typed{font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:18px; min-height:18px;}
+  #typed::after{content:"█"; animation:blink 1s step-start infinite; color:var(--accent);}
+  @keyframes blink{50%{opacity:0;}}
+  .hero h1{font-family:var(--mono); font-size:clamp(28px,4vw,42px); margin:0 0 14px; color:#fff; line-height:1.25;}
+  .hero p{color:var(--text-dim); max-width:680px; font-size:15px;}
+  .hero-stats{display:flex; gap:28px; margin-top:26px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono);}
+  .stat b{color:var(--accent); font-size:20px; display:block;}
+  .stat span{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .content{padding:8px 48px 80px; max-width:920px;}
+  section.topic{border-bottom:1px solid var(--border); padding:36px 0;}
+  section.topic:first-of-type{padding-top:28px;}
+
+  .topic-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px;}
+  .topic-head h2{font-family:var(--mono); font-size:22px; color:#fff; margin:0; display:flex; align-items:center; gap:10px;}
+  .topic-head h2 .tagnum{color:var(--accent);}
+  .topic-controls{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .diff{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;}
+  .diff.mid{color:var(--accent); border-color:var(--accent-dim);}
+  .diff.senior{color:var(--red); border-color:#5a3229;}
+  .star-btn, .check-btn{
+    background:none; border:1px solid var(--border); color:var(--text-faint); cursor:pointer;
+    border-radius:5px; padding:5px 8px; font-size:14px; line-height:1;
+  }
+  .star-btn.active{color:var(--accent); border-color:var(--accent-dim);}
+  .check-btn.active{color:var(--green); border-color:#2c5a41;}
+
+  .subhead{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin:22px 0 8px;}
+  .subhead.mistakes{color:var(--red);}
+  .subhead.best{color:var(--green);}
+  .topic p{margin:0 0 10px; color:var(--text);}
+  .topic ul{margin:6px 0 10px; padding-left:20px;}
+  .topic li{margin-bottom:5px; color:var(--text);}
+
+  pre{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; font-size:12.8px; position:relative; margin:10px 0;
+  }
+  pre code{background:none; padding:0; color:var(--text);}
+  .kw{color:#c586c0;} .str{color:var(--green);} .cmt{color:var(--text-faint); font-style:italic;} .fn{color:#5fb3d3;} .num{color:#e3b341;} .var{color:#9cdcfe;}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-dim); font-family:var(--mono); font-size:10.5px; padding:4px 8px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);}
+
+  .callout{border-left:3px solid var(--accent); background:var(--surface); padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim);}
+  .followups{list-style:none; padding:0; margin:8px 0;}
+  .followups li{ font-size:13.5px; color:var(--text-dim); padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border); }
+  .followups li::before{content:"↳"; position:absolute; left:0; color:var(--text-faint);}
+  .followups li:last-child{border-bottom:none;}
+
+  .rapid-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 32px;}
+  @media (max-width:700px){.rapid-grid{grid-template-columns:1fr;}}
+  details.qa{border-bottom:1px solid var(--border); padding:10px 0;}
+  details.qa summary{cursor:pointer; color:var(--text); font-size:13.5px; list-style:none; display:flex; gap:8px;}
+  details.qa summary::before{content:"▸"; color:var(--accent); flex-shrink:0;}
+  details.qa[open] summary::before{content:"▾";}
+  details.qa summary::-webkit-details-marker{display:none;}
+  details.qa .ans{padding:8px 0 0 18px; color:var(--text-dim); font-size:13px;}
+
+  .part-footer{
+    padding:50px 48px; border-top:1px solid var(--border); background:var(--surface);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .part-footer .next{font-family:var(--mono); color:var(--text-dim); font-size:13px;}
+  .part-footer .next b{color:var(--accent); display:block; font-size:15px; margin-bottom:4px;}
+  .kbd{font-family:var(--mono); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--text-dim);}
+
+  .cheatsheet{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:22px 26px; margin:20px 0;}
+  .cheatsheet table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cheatsheet th{text-align:left; font-family:var(--mono); color:var(--text-faint); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);}
+  .cheatsheet td{padding:7px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); vertical-align:top;}
+  .cheatsheet td:first-child{color:var(--accent); font-family:var(--mono); white-space:nowrap;}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="brand">$ interview-prep --guide</div>
+    <div class="brand-title">Full-Stack Interview Handbook</div>
+
+    <input type="text" id="search" placeholder="/ search this chapter…" autocomplete="off">
+    <div class="search-hint">press <span class="kbd">/</span> to focus · <span class="kbd">esc</span> to clear</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>CH.5 PROGRESS</span><span id="progress-text">0 / 10</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <ul class="chapters">
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">01</span> JavaScript + DOM <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">02</span> React + Next.js <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">03</span> Node.js + Backend Design <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">04</span> PHP + Laravel <span class="done-tag">done</span></a></li>
+      <li class="current"><a href="#top"><span class="chnum">05</span> Database + SQL</a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">06</span> System Design <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">07</span> HR + Project Stories <span class="soon">soon</span></a></li>
+    </ul>
+
+    <div class="toc-title">On this page</div>
+    <ul class="toc" id="toc"></ul>
+
+    <div class="toc-title">Bookmarks</div>
+    <ul class="toc" id="bookmark-list"><li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li></ul>
+  </aside>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="hero-eyebrow">CHAPTER 5 OF 7 · DATA LAYER</div>
+      <div id="typed"></div>
+      <h1>Database &amp; SQL,<br>the questions that expose real schema experience</h1>
+      <p>Ten core topics — indexing, normalization vs denormalization, joins, transactions &amp; ACID, query optimization with EXPLAIN, subqueries vs CTEs, views/procedures/triggers, keys &amp; constraints, aggregation &amp; window functions, and pagination &amp; scaling — each broken down the same way as the earlier chapters. Then 25 rapid-fire questions and a cheat sheet.</p>
+      <div class="hero-stats">
+        <div class="stat"><b>10</b><span>Deep Topics</span></div>
+        <div class="stat"><b>25</b><span>Rapid Fire Q&amp;A</span></div>
+        <div class="stat"><b>30+</b><span>SQL Examples</span></div>
+        <div class="stat"><b>2</b><span>Chapters Remaining</span></div>
+      </div>
+    </section>
+
+    <div class="content">
+
+      <!-- ============ TOPIC 1 ============ -->
+      <section class="topic" data-topic="1" id="t1">
+        <div class="topic-head">
+          <h2><span class="tagnum">01.</span> Indexes &amp; Composite Indexes</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="1">☆</button>
+            <button class="check-btn" data-ck="1">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> An index is a separate, sorted data structure (typically a <strong>B-tree</strong> in MySQL/InnoDB) that lets the database find rows without scanning the entire table — trading extra storage and slower writes for much faster reads on the indexed column(s). A <strong>composite (multi-column) index</strong> is sorted by its columns in order, which matters enormously: it can efficiently satisfy a query filtering on the first column alone, or the first and second together, but generally can't be used efficiently to filter on the second column alone — this is the <strong>leftmost prefix rule</strong>. A <strong>covering index</strong> includes every column a query needs, letting the database satisfy the query from the index alone without touching the actual table rows.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Indexing is the highest-leverage, most practically-tested database skill because it's the difference between a query that takes milliseconds and one that takes seconds at scale — and misunderstanding the leftmost-prefix rule is an extremely common real bug where a composite index silently isn't being used at all.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>In a 127-table schema like CampVine's, a bookings table queried by both <code>camp_id</code> and a date range needs a composite index on <code>(camp_id, date)</code> in that order — a query filtering only by date wouldn't use it efficiently, but the actual access pattern (find bookings for a specific camp within a date range) hits it perfectly.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Indexing every column "just in case" — each index slows down every write (insert/update/delete) since the index structure has to be maintained too, so indexes are a deliberate trade-off, not free.</li>
+          <li>Creating a composite index in the wrong column order for the actual query pattern, making it unusable for the most common query.</li>
+          <li>Not knowing that a leading wildcard (<code>LIKE '%term'</code>) can't use a standard B-tree index at all, while a trailing wildcard (<code>LIKE 'term%'</code>) can.</li>
+          <li>Forgetting that functions applied to an indexed column in a WHERE clause (<code>WHERE YEAR(created_at) = 2026</code>) prevent the index from being used — the column needs to be compared directly.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I index based on actual query patterns, not preemptively — every index speeds up reads but costs write performance and storage, so it's a deliberate trade-off. For composite indexes, column order has to match how the query actually filters, because of the leftmost prefix rule — an index on (camp_id, date) helps a query filtering by camp_id alone or camp_id plus date, but not date alone. When I suspect an index isn't being used, I check with EXPLAIN rather than guessing — a full table scan shows up clearly as type: ALL instead of a ref or range lookup."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>You have an index on (a, b) — will a query filtering only on b use it? Why or why not?</li>
+          <li>What's a covering index, and how would you design one for a specific slow query?</li>
+          <li>Why can indexing hurt write-heavy tables?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- Composite index matching the real access pattern</span>
+<span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_camp_date <span class="kw">ON</span> bookings (camp_id, booking_date);
+
+<span class="kw">-- Uses the index (leftmost prefix: camp_id, or camp_id + booking_date)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> bookings <span class="kw">WHERE</span> camp_id = <span class="num">42</span> <span class="kw">AND</span> booking_date >= <span class="str">'2026-01-01'</span>;
+
+<span class="kw">-- Does NOT use idx_camp_date efficiently — booking_date isn't the leading column</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> bookings <span class="kw">WHERE</span> booking_date >= <span class="str">'2026-01-01'</span>;
+
+<span class="kw">-- Covering index: query is satisfied from the index alone, no table lookup</span>
+<span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_covering <span class="kw">ON</span> bookings (camp_id, booking_date, status);
+<span class="kw">SELECT</span> status <span class="kw">FROM</span> bookings <span class="kw">WHERE</span> camp_id = <span class="num">42</span> <span class="kw">AND</span> booking_date >= <span class="str">'2026-01-01'</span>;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Index based on real, measured query patterns (slow query log) rather than speculatively.</li>
+          <li>Put the most selective / most-filtered-on column first in a composite index, matching actual WHERE clause usage.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 2 ============ -->
+      <section class="topic" data-topic="2" id="t2">
+        <div class="topic-head">
+          <h2><span class="tagnum">02.</span> Normalization vs Denormalization</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="2">☆</button>
+            <button class="check-btn" data-ck="2">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Normalization</strong> organizes data to eliminate redundancy by splitting it into related tables, following progressively stricter normal forms — 1NF (atomic columns, no repeating groups), 2NF (no partial dependency on part of a composite key), 3NF (no transitive dependencies — non-key columns depend only on the key). This prevents update anomalies (changing a customer's address in one place but not another) at the cost of needing joins to reassemble data. <strong>Denormalization</strong> deliberately reintroduces redundancy — duplicating or precomputing data — to avoid expensive joins/aggregations on read-heavy paths, accepting the risk of data getting out of sync in exchange for read speed.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This tests whether you understand database design as a set of trade-offs rather than a rulebook — a fully normalized schema is "textbook correct" but can be genuinely wrong for a read-heavy, high-traffic table, and knowing when to break the rules deliberately is a senior signal.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Storing a camp's current average rating as a denormalized column (updated on each new review) instead of recalculating <code>AVG(rating)</code> from the reviews table on every single listing page load is a textbook denormalization trade-off — worth it for a frequently-read, infrequently-changed aggregate on a high-traffic page.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Denormalizing prematurely, before actually measuring that joins/aggregation are a real performance problem — adding synchronization complexity for no proven benefit.</li>
+          <li>Denormalizing without a clear strategy for keeping the duplicated data in sync (via triggers, application logic, or event listeners), leading to silently stale or inconsistent data.</li>
+          <li>Over-normalizing a schema to the point where every simple read requires five joins, when a few strategic redundant columns would be far simpler.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I start normalized by default — it prevents update anomalies and keeps a single source of truth — and only denormalize deliberately, on a specific measured bottleneck, usually a read-heavy aggregate that's recalculated far more often than the underlying data changes. When I do denormalize, like caching a camp's average rating as a column, I make sure there's a clear, reliable mechanism to keep it in sync — updating it in the same transaction as the review write, or via a model observer — rather than hoping application code remembers to update it everywhere."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Give an example of an update anomaly a normalized schema prevents.</li>
+          <li>How would you keep a denormalized aggregate column in sync reliably?</li>
+          <li>What's the difference between 2NF and 3NF, concretely?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- Normalized: rating computed on read, always accurate, costs a join+aggregate</span>
+<span class="kw">SELECT</span> c.name, <span class="kw">AVG</span>(r.rating) <span class="kw">as</span> avg_rating
+<span class="kw">FROM</span> camps c <span class="kw">JOIN</span> reviews r <span class="kw">ON</span> r.camp_id = c.id
+<span class="kw">GROUP</span> <span class="kw">BY</span> c.id;
+
+<span class="kw">-- Denormalized: precomputed column, cheap read, needs a sync mechanism</span>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> camps <span class="kw">ADD</span> <span class="kw">COLUMN</span> avg_rating <span class="kw">DECIMAL</span>(<span class="num">3</span>,<span class="num">2</span>) <span class="kw">DEFAULT</span> <span class="num">0</span>;
+<span class="cmt">-- kept in sync via a model observer or DB trigger whenever a review is created/updated/deleted</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Normalize first; denormalize only against a measured, real bottleneck.</li>
+          <li>Whenever you denormalize, decide and document exactly what keeps the redundant data in sync.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 3 ============ -->
+      <section class="topic" data-topic="3" id="t3">
+        <div class="topic-head">
+          <h2><span class="tagnum">03.</span> Joins — Inner, Left, Right, Cross, Self</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="3">☆</button>
+            <button class="check-btn" data-ck="3">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>INNER JOIN</strong> returns only rows with matches in both tables. <strong>LEFT JOIN</strong> returns every row from the left table, with <code>NULL</code>s filling in for unmatched right-table columns — used whenever you need "all of X, plus related Y if it exists" (e.g. all camps, even ones with zero bookings). <strong>RIGHT JOIN</strong> is the mirror image, rarely used in practice since any right join can be rewritten as a left join by swapping table order. <strong>CROSS JOIN</strong> produces the full Cartesian product — every row of table A paired with every row of table B — genuinely useful for generating combinations (e.g. every date × every camp for an availability calendar) but a common accidental bug when a join condition is forgotten. <strong>SELF JOIN</strong> joins a table to itself, used for hierarchical or comparative data within the same table (e.g. an employee and their manager, both rows in the same <code>employees</code> table).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Join type selection is tested constantly because picking the wrong one is a very common, subtle bug — using an INNER JOIN when you actually needed a LEFT JOIN silently drops rows (e.g. camps with no bookings disappear from a report entirely) without throwing any error.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A dashboard showing "all camps and their booking count, including camps with zero bookings" needs a LEFT JOIN with <code>COUNT</code> — an INNER JOIN would silently exclude camps that haven't been booked yet, which is exactly the kind of report bug that goes unnoticed until someone asks why a known camp is missing.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Defaulting to INNER JOIN out of habit when the requirement is actually "include rows with no match" — silently drops data instead of erroring, making it a hard bug to catch.</li>
+          <li>Forgetting the join condition and accidentally producing a Cartesian product (an unintentional cross join), which can silently multiply row counts and break aggregates.</li>
+          <li>Filtering a LEFT JOIN's right-table column in the WHERE clause instead of the ON clause, which effectively turns it back into an INNER JOIN by excluding the NULL rows the LEFT JOIN was meant to preserve.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The join type is really a question about what happens to unmatched rows. INNER JOIN drops them from both sides, LEFT JOIN keeps every row from the left table and fills unmatched right-side columns with NULL — which is what I reach for whenever the requirement includes 'even if there's no related record,' like showing every camp including ones with zero bookings. The subtle bug I watch for is filtering a LEFT JOIN's right-table column in the WHERE clause instead of the ON clause — that silently turns it back into an INNER JOIN by excluding all the NULL rows you just went out of your way to keep."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Write a query to find all camps with zero bookings, using a LEFT JOIN.</li>
+          <li>Why does filtering a LEFT JOIN's right table in WHERE instead of ON change the result?</li>
+          <li>Give a real use case for a self join.</li>
+        </ul>
+
+        <pre><code><span class="kw">-- Camps with zero bookings — the classic LEFT JOIN + NULL check pattern</span>
+<span class="kw">SELECT</span> c.name
+<span class="kw">FROM</span> camps c
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> bookings b <span class="kw">ON</span> b.camp_id = c.id
+<span class="kw">WHERE</span> b.id <span class="kw">IS</span> <span class="kw">NULL</span>;
+
+<span class="kw">-- Self join: employee paired with their manager, same table</span>
+<span class="kw">SELECT</span> e.name <span class="kw">AS</span> employee, m.name <span class="kw">AS</span> manager
+<span class="kw">FROM</span> employees e
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> employees m <span class="kw">ON</span> e.manager_id = m.id;
+
+<span class="kw">-- The WHERE-vs-ON bug: this silently becomes an INNER JOIN</span>
+<span class="kw">SELECT</span> c.name <span class="kw">FROM</span> camps c
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> bookings b <span class="kw">ON</span> b.camp_id = c.id
+<span class="kw">WHERE</span> b.status = <span class="str">'confirmed'</span>; <span class="cmt">-- drops all camps with NO bookings at all</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Put right-table filter conditions in the ON clause when you need to preserve a LEFT JOIN's unmatched rows.</li>
+          <li>Always double check row counts after a join during development — an unexpectedly inflated count is the classic sign of an accidental Cartesian product.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 4 ============ -->
+      <section class="topic" data-topic="4" id="t4">
+        <div class="topic-head">
+          <h2><span class="tagnum">04.</span> Transactions, ACID &amp; Isolation Levels</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="4">☆</button>
+            <button class="check-btn" data-ck="4">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>transaction</strong> groups multiple operations so they all succeed together or all roll back together — critical for anything with multiple related writes, like creating a booking and deducting inventory in the same operation. <strong>ACID</strong> defines the guarantees: <strong>Atomicity</strong> (all-or-nothing), <strong>Consistency</strong> (the database moves between valid states, respecting constraints), <strong>Isolation</strong> (concurrent transactions don't interfere with each other's intermediate state), <strong>Durability</strong> (once committed, data survives a crash). <strong>Isolation levels</strong> tune the trade-off between consistency and concurrency performance: <strong>Read Uncommitted</strong> (can see other transactions' uncommitted changes — "dirty reads"), <strong>Read Committed</strong> (only sees committed data, but can get different results on repeated reads within the same transaction), <strong>Repeatable Read</strong> (MySQL's default — consistent reads throughout the transaction, but can still see new rows appear — "phantom reads"), <strong>Serializable</strong> (strongest, fully isolated, but effectively serializes concurrent access, hurting throughput).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Any payment or booking system lives or dies on correct transaction handling — this is directly the difference between a reliable system and one that double-charges customers or double-books inventory under concurrent load, so it's a near-mandatory question for anyone claiming payment integration experience.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Creating a booking and processing its payment need to be one atomic transaction — if the payment succeeds but the booking record write fails (or vice versa), you either have a paid-for booking that doesn't exist or a booking with no payment behind it. Wrapping both in a transaction, and only committing once both succeed, is exactly the kind of correctness guarantee that matters for the payment integration work you've done.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Doing a multi-step write (check availability, then insert booking) without a transaction or row locking, allowing two concurrent requests to both pass the availability check and double-book the same slot — a classic race condition.</li>
+          <li>Wrapping unrelated, independent operations in a single large transaction, holding locks longer than necessary and hurting concurrency.</li>
+          <li>Not knowing the default isolation level of the database in use, and assuming stronger guarantees (like no phantom reads) than what's actually configured.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Any time I have multiple writes that need to succeed or fail together — like a booking record plus a payment charge — I wrap them in a transaction so a partial failure can't leave the data in an inconsistent state. For race conditions specifically, like two people trying to book the last spot at the same time, a transaction alone isn't enough — I also need row-level locking, either a pessimistic lock with SELECT ... FOR UPDATE, or an optimistic approach with a version column, depending on how much contention I expect. I keep transactions as short and focused as possible, since they hold locks and hurt concurrency the longer they're open."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's a dirty read vs a phantom read? Which isolation levels prevent each?</li>
+          <li>How would you prevent two users from double-booking the last available slot?</li>
+          <li>What's the difference between optimistic and pessimistic locking, and when would you use each?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- Atomic booking + payment: both succeed or both roll back</span>
+<span class="kw">START</span> <span class="kw">TRANSACTION</span>;
+  <span class="kw">INSERT</span> <span class="kw">INTO</span> bookings (camp_id, user_id, amount) <span class="kw">VALUES</span> (<span class="num">42</span>, <span class="num">7</span>, <span class="num">400</span>);
+  <span class="kw">UPDATE</span> camp_slots <span class="kw">SET</span> available = available - <span class="num">1</span> <span class="kw">WHERE</span> camp_id = <span class="num">42</span> <span class="kw">AND</span> available > <span class="num">0</span>;
+  <span class="cmt">-- if the UPDATE affected 0 rows (no availability), roll back instead of committing</span>
+<span class="kw">COMMIT</span>;
+
+<span class="kw">-- Pessimistic lock to prevent a double-booking race condition</span>
+<span class="kw">START</span> <span class="kw">TRANSACTION</span>;
+  <span class="kw">SELECT</span> available <span class="kw">FROM</span> camp_slots <span class="kw">WHERE</span> camp_id = <span class="num">42</span> <span class="kw">FOR</span> <span class="kw">UPDATE</span>; <span class="cmt">-- blocks other transactions until commit</span>
+  <span class="cmt">-- ... check availability in application code, then insert booking</span>
+<span class="kw">COMMIT</span>;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Keep transactions short-lived — do validation/preparation outside the transaction where possible, minimizing lock duration.</li>
+          <li>Use row-level locking (or optimistic concurrency with a version column) explicitly whenever a race condition between concurrent writers is a realistic risk.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 5 ============ -->
+      <section class="topic" data-topic="5" id="t5">
+        <div class="topic-head">
+          <h2><span class="tagnum">05.</span> Query Optimization &amp; EXPLAIN</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="5">☆</button>
+            <button class="check-btn" data-ck="5">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <code>EXPLAIN</code> shows the database's query execution plan without actually running the query — which indexes (if any) it plans to use, the estimated number of rows it'll scan, the join order, and the access type (a full table scan vs an index lookup). The <code>type</code> column is the key signal: <code>ALL</code> means a full table scan (worst case), <code>index</code> scans the whole index, <code>range</code>/<code>ref</code> use an index for a bounded lookup (good), and <code>const</code>/<code>eq_ref</code> mean at most one matching row (best case). Beyond indexing, optimization also covers avoiding <code>SELECT *</code> (fetches unneeded columns, prevents covering-index optimization), rewriting correlated subqueries as joins where possible, and batching operations instead of looping queries in application code.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is the practical, hands-on skill behind "the query is slow, fix it" — a question type nearly every backend interview includes in some form, since diagnosing real performance problems (not just knowing index theory) is what the job actually requires day to day.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Diagnosing a slow endpoint in production starts with running <code>EXPLAIN</code> on the query the endpoint generates (visible via Laravel's query log or Debugbar), checking whether <code>type</code> shows a full table scan, and then either adding the missing index, rewriting the query, or restructuring the eager-loading to eliminate an N+1 hiding behind it.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Adding an index reactively without confirming via EXPLAIN that it actually gets used — sometimes MySQL's query planner chooses not to use an index that exists, for reasons worth understanding (e.g. low table cardinality, or the optimizer estimating a full scan is actually cheaper).</li>
+          <li>Optimizing by intuition instead of measurement — guessing which query is slow rather than checking the slow query log or actual EXPLAIN output.</li>
+          <li>Ignoring that <code>ORDER BY</code> and <code>GROUP BY</code> can also benefit from (or require) an index to avoid an expensive in-memory sort ("Using filesort" in EXPLAIN output).</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"My first step diagnosing a slow query is always EXPLAIN before touching anything — I look at the type column to see if it's doing a full table scan versus an index lookup, and at rows to see how many rows it estimates scanning. From there it's usually one of a few fixes: add or adjust an index to match the actual filter/join/order pattern, rewrite a correlated subquery as a join, or realize the 'slow query' is actually N+1 queries disguised as one slow page load. I don't add indexes speculatively — I confirm with EXPLAIN that the fix actually changes the access type before considering it solved."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What does 'Using filesort' in an EXPLAIN output mean, and how would you fix it?</li>
+          <li>Why might MySQL choose not to use an index that exists on a column you're filtering by?</li>
+          <li>Walk through your process for diagnosing a slow endpoint in production.</li>
+        </ul>
+
+        <pre><code><span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> bookings <span class="kw">WHERE</span> camp_id = <span class="num">42</span> <span class="kw">AND</span> booking_date >= <span class="str">'2026-01-01'</span>;
+
+<span class="cmt">-- Key columns to read in the output:
+-- type: ALL (full scan, bad) vs range/ref (index used, good) vs const (best)
+-- key:  which index (if any) MySQL actually chose to use
+-- rows: estimated rows scanned to satisfy the query
+-- Extra: "Using filesort" / "Using temporary" are red flags for optimization</span>
+
+<span class="kw">-- Avoid SELECT * when only specific columns are needed —
+-- lets a covering index satisfy the query without touching table rows</span>
+<span class="kw">SELECT</span> id, status <span class="kw">FROM</span> bookings <span class="kw">WHERE</span> camp_id = <span class="num">42</span>;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always confirm an optimization actually changed the query plan via EXPLAIN — don't assume.</li>
+          <li>Select only the columns actually needed, especially on large or frequently-run queries.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 6 ============ -->
+      <section class="topic" data-topic="6" id="t6">
+        <div class="topic-head">
+          <h2><span class="tagnum">06.</span> Subqueries vs Joins vs CTEs</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="6">☆</button>
+            <button class="check-btn" data-ck="6">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>subquery</strong> is a query nested inside another — it can appear in <code>SELECT</code>, <code>FROM</code>, or <code>WHERE</code>. A <strong>correlated subquery</strong> references a column from the outer query and re-runs once per outer row, which can be genuinely slow at scale; an <strong>uncorrelated subquery</strong> runs once independently. A <strong>Common Table Expression (CTE)</strong>, defined with <code>WITH ... AS (...)</code>, names a temporary result set for readability and reuse within a single query — functionally similar to a subquery in <code>FROM</code>, but easier to read, and required for <strong>recursive queries</strong> (e.g. walking a category tree or org chart) via <code>WITH RECURSIVE</code>. In many cases a correlated subquery can be rewritten as a join, which the query planner can often optimize better.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Rewriting a slow correlated subquery as a join is one of the most common concrete query-optimization tasks in practice, and CTEs specifically test whether you know modern SQL beyond basic joins — increasingly expected as codebases move complex reporting logic into the database layer.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A recursive CTE is the natural tool for a hierarchical structure like camp categories with subcategories, or an org chart of camp staff roles — walking the full tree in one query instead of recursive application-level queries per level.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using a correlated subquery inside a <code>SELECT</code> clause across a large result set when a single joined aggregate query would compute the same thing far more efficiently.</li>
+          <li>Not knowing CTEs (non-recursive) are often just syntactic sugar for readability — the query planner may or may not materialize them separately depending on the database engine and version, so a CTE isn't automatically a performance win over a subquery.</li>
+          <li>Writing a recursive CTE with no proper termination condition, risking an infinite loop on cyclic data.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I reach for a CTE mainly for readability — naming an intermediate result set makes a complex query much easier to follow than nesting subqueries three levels deep — and it's the only real option once you need recursion, like walking a category tree. For performance specifically, though, I check whether a correlated subquery can be rewritten as a join, since the query planner often handles that better than re-running a subquery once per outer row; I confirm with EXPLAIN rather than assuming one form is always faster than the other."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Rewrite a correlated subquery in WHERE as an equivalent join.</li>
+          <li>When would you need WITH RECURSIVE, and what stops it from looping forever?</li>
+          <li>Is a CTE always faster than an equivalent subquery? Why or why not?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- Correlated subquery — re-evaluated per outer row</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> camps c
+<span class="kw">WHERE</span> (<span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> bookings b <span class="kw">WHERE</span> b.camp_id = c.id) > <span class="num">10</span>;
+
+<span class="kw">-- Rewritten as a join + GROUP BY/HAVING — usually the more optimizable form</span>
+<span class="kw">SELECT</span> c.name <span class="kw">FROM</span> camps c
+<span class="kw">JOIN</span> bookings b <span class="kw">ON</span> b.camp_id = c.id
+<span class="kw">GROUP</span> <span class="kw">BY</span> c.id <span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) > <span class="num">10</span>;
+
+<span class="kw">-- Recursive CTE walking a category tree</span>
+<span class="kw">WITH</span> <span class="kw">RECURSIVE</span> category_tree <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> id, name, parent_id <span class="kw">FROM</span> categories <span class="kw">WHERE</span> parent_id <span class="kw">IS</span> <span class="kw">NULL</span>
+  <span class="kw">UNION</span> <span class="kw">ALL</span>
+  <span class="kw">SELECT</span> c.id, c.name, c.parent_id <span class="kw">FROM</span> categories c
+  <span class="kw">JOIN</span> category_tree ct <span class="kw">ON</span> c.parent_id = ct.id
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> category_tree;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Try rewriting slow correlated subqueries as joins first, and verify the change with EXPLAIN.</li>
+          <li>Use CTEs to make complex, multi-step queries readable and maintainable, not just for perceived performance.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 7 ============ -->
+      <section class="topic" data-topic="7" id="t7">
+        <div class="topic-head">
+          <h2><span class="tagnum">07.</span> Views, Stored Procedures &amp; Triggers</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="7">☆</button>
+            <button class="check-btn" data-ck="7">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>view</strong> is a saved, named query that behaves like a virtual table — it doesn't store data itself (unless it's a materialized view, less common in MySQL), it just wraps a query for reuse and to present a simplified or restricted interface over complex underlying tables. A <strong>stored procedure</strong> is a precompiled block of SQL logic stored in the database itself, callable by name, useful for encapsulating multi-step database operations. A <strong>trigger</strong> is a piece of logic that fires automatically in response to a table event (<code>BEFORE</code>/<code>AFTER</code> <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code>) — commonly used for auditing, enforcing invariants, or keeping a denormalized column in sync without relying on application code to remember.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This topic tests judgment about where logic should live — database-level constructs are powerful but can also hide business logic from the application layer, making it invisible to code review, version control (if not managed carefully), and harder to test — so interviewers want to see you weigh that trade-off, not just know the syntax.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A trigger that automatically updates a camp's <code>avg_rating</code> column whenever a row is inserted/updated/deleted in the reviews table is a legitimate use — it guarantees consistency regardless of which application code path writes a review, which a Laravel model observer can't guarantee if the row is ever modified outside of Eloquent (a raw migration, a manual DB fix, another service).</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Putting substantial business logic in stored procedures/triggers in a codebase that otherwise keeps logic in the application layer — creates two places to look for behavior, and triggers especially can surprise developers who don't expect a simple UPDATE to have side effects.</li>
+          <li>Relying on a Laravel model observer alone to maintain a denormalized column's consistency, forgetting that any write that bypasses Eloquent (raw SQL, another service, a migration) won't trigger it — a DB-level trigger doesn't have that gap.</li>
+          <li>Not version-controlling database-level logic (procedures/triggers) alongside application code, making changes to it invisible in code review.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I generally prefer keeping business logic in the application layer where it's version-controlled, testable, and visible in code review — but there are cases where a database-level guarantee is genuinely stronger than an application-level one, like a trigger keeping a denormalized column in sync regardless of which code path writes to the underlying table, including raw SQL or another service entirely. When I do use triggers or procedures, I keep them narrowly scoped to that kind of invariant-enforcement or sync logic, not general business rules, and make sure they're captured in migrations so they're version-controlled like everything else."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's a real risk of putting business logic in a trigger instead of application code?</li>
+          <li>When would a database-level guarantee (trigger) be genuinely better than an application-level one (model observer)?</li>
+          <li>What's the difference between a regular view and a materialized view?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- View: simplified interface over a join, reusable</span>
+<span class="kw">CREATE</span> <span class="kw">VIEW</span> active_camp_bookings <span class="kw">AS</span>
+<span class="kw">SELECT</span> b.id, c.name <span class="kw">AS</span> camp_name, b.booking_date
+<span class="kw">FROM</span> bookings b <span class="kw">JOIN</span> camps c <span class="kw">ON</span> c.id = b.camp_id
+<span class="kw">WHERE</span> c.status = <span class="str">'active'</span>;
+
+<span class="kw">-- Trigger: keeps avg_rating in sync regardless of write source</span>
+<span class="kw">CREATE</span> <span class="kw">TRIGGER</span> after_review_insert
+<span class="kw">AFTER</span> <span class="kw">INSERT</span> <span class="kw">ON</span> reviews
+<span class="kw">FOR</span> <span class="kw">EACH</span> <span class="kw">ROW</span>
+<span class="kw">UPDATE</span> camps
+<span class="kw">SET</span> avg_rating = (<span class="kw">SELECT</span> <span class="kw">AVG</span>(rating) <span class="kw">FROM</span> reviews <span class="kw">WHERE</span> camp_id = NEW.camp_id)
+<span class="kw">WHERE</span> id = NEW.camp_id;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Default to application-layer logic for anything testable and business-rule-related; reserve triggers for narrow, unavoidable consistency guarantees.</li>
+          <li>Version-control database-level logic through migrations, same as schema changes.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 8 ============ -->
+      <section class="topic" data-topic="8" id="t8">
+        <div class="topic-head">
+          <h2><span class="tagnum">08.</span> Keys &amp; Constraints: PK, FK, Unique, Referential Integrity</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="8">☆</button>
+            <button class="check-btn" data-ck="8">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>primary key</strong> uniquely identifies each row and is non-null by definition; most engines automatically index it. A <strong>foreign key</strong> enforces <strong>referential integrity</strong> — it guarantees a value in one table must exist as a primary key in another, preventing orphaned records (a booking pointing at a deleted camp). Foreign keys carry an <code>ON DELETE</code>/<code>ON UPDATE</code> behavior: <code>CASCADE</code> (delete/update dependent rows automatically), <code>RESTRICT</code> (block the operation if dependents exist), <code>SET NULL</code> (null out the reference). A <strong>unique constraint</strong> guarantees no duplicate values in a column (or column combination) but, unlike a primary key, allows <code>NULL</code> and a table can have multiple unique constraints.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Constraints are the database's own enforcement of data integrity, independent of whatever application code happens to run — this topic tests whether you rely on the database as a genuine safety net or only on application-level validation, which can be bypassed or buggy.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A composite unique constraint on <code>(camp_id, user_id, booking_date)</code> prevents the same user from double-booking the identical slot at the database level, even if application-level validation has a bug or race condition — a real defense-in-depth decision relevant to exactly the kind of concurrent booking system you've built.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Relying solely on application-level validation for uniqueness/integrity, which is vulnerable to race conditions between the check and the write — a database constraint closes that gap because it's enforced atomically at write time.</li>
+          <li>Using <code>ON DELETE CASCADE</code> without fully considering the blast radius — accidentally deleting a camp cascades to delete every booking, payment record, and review tied to it.</li>
+          <li>Not adding a unique constraint on a column that's logically unique (like an email or an idempotency key) and finding duplicates only after they've already been created in production.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I treat database constraints as the actual source of truth for data integrity, with application-level validation as a fast, friendly first line of defense — not the only one — because application checks are vulnerable to race conditions that a database-level unique constraint closes atomically. For foreign key delete behavior I'm deliberate rather than defaulting to CASCADE everywhere — for something like a camp with bookings and payment history attached, I'd rather RESTRICT the delete and force an explicit decision than silently cascade-delete financial records."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why isn't application-level uniqueness validation alone sufficient to prevent duplicates?</li>
+          <li>When would ON DELETE CASCADE be dangerous, and what would you use instead?</li>
+          <li>What's the difference between a unique constraint and a unique index?</li>
+        </ul>
+
+        <pre><code><span class="kw">CREATE</span> <span class="kw">TABLE</span> bookings (
+  id <span class="kw">BIGINT</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span> <span class="kw">AUTO_INCREMENT</span>,
+  camp_id <span class="kw">BIGINT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
+  user_id <span class="kw">BIGINT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
+  booking_date <span class="kw">DATE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
+  <span class="kw">FOREIGN</span> <span class="kw">KEY</span> (camp_id) <span class="kw">REFERENCES</span> camps(id) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">RESTRICT</span>,
+  <span class="kw">FOREIGN</span> <span class="kw">KEY</span> (user_id) <span class="kw">REFERENCES</span> users(id) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,
+  <span class="kw">UNIQUE</span> <span class="kw">KEY</span> uq_no_double_booking (camp_id, user_id, booking_date)
+);</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Enforce true business-level uniqueness with a database constraint, not just application validation.</li>
+          <li>Choose ON DELETE behavior deliberately per relationship — never let CASCADE be the unconsidered default on financially or historically significant data.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 9 ============ -->
+      <section class="topic" data-topic="9" id="t9">
+        <div class="topic-head">
+          <h2><span class="tagnum">09.</span> Aggregation: GROUP BY, HAVING &amp; Window Functions</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="9">☆</button>
+            <button class="check-btn" data-ck="9">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <code>GROUP BY</code> collapses rows sharing a value into a single summary row per group, used with aggregate functions (<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MAX</code>, <code>MIN</code>). <code>WHERE</code> filters rows <em>before</em> grouping; <code>HAVING</code> filters groups <em>after</em> aggregation — which is why you can't reference an aggregate function's result in <code>WHERE</code>, only in <code>HAVING</code>. <strong>Window functions</strong> (<code>ROW_NUMBER()</code>, <code>RANK()</code>, <code>SUM() OVER (...)</code>) are the more powerful modern tool: unlike <code>GROUP BY</code>, they compute an aggregate <em>without collapsing rows</em> — each row keeps its own identity while also seeing an aggregate calculated over a defined "window" of related rows (via <code>PARTITION BY</code> and <code>ORDER BY</code>), enabling things like "rank each booking within its camp by date" or a running total, which are awkward or impossible with plain <code>GROUP BY</code>.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Window functions specifically are a strong differentiator — many developers only know <code>GROUP BY</code> and reach for slow, awkward self-joins or application-level loops for things a window function solves in one clean query, so demonstrating fluency here signals real SQL depth beyond CRUD basics.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Finding each camp's most recent booking, or ranking camps by revenue within each region, is exactly what <code>ROW_NUMBER() OVER (PARTITION BY ...)</code> is built for — computing a per-group rank while still returning individual row detail, something a plain <code>GROUP BY</code> can't do since it would collapse the very rows you need to see.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Trying to filter on an aggregate in <code>WHERE</code> instead of <code>HAVING</code> — a common syntax-level mistake that also reveals a misunderstanding of query execution order.</li>
+          <li>Reaching for a self-join or an application-level loop to compute a running total or per-group rank when a window function does it in one pass, more efficiently and more readably.</li>
+          <li>Forgetting <code>PARTITION BY</code> in a window function when a per-group (not global) calculation was intended, accidentally computing the aggregate across the entire result set.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"GROUP BY collapses rows into one summary per group, so it's right when I only need the aggregate itself — total bookings per camp. The moment I need the aggregate alongside individual row detail — like each booking's rank within its camp, or a running total — GROUP BY can't do that without losing row-level data, so I reach for a window function with PARTITION BY to scope the calculation per group while keeping every row intact. And WHERE vs HAVING is really about execution order: WHERE filters rows before grouping happens, HAVING filters the resulting groups, which is why you can't put an aggregate condition in WHERE."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Write a query to find the most recent booking per camp using a window function.</li>
+          <li>What's the difference between RANK() and ROW_NUMBER() when there are ties?</li>
+          <li>Why can't you filter on COUNT(*) in a WHERE clause?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- GROUP BY + HAVING: total bookings per camp, only camps with 10+</span>
+<span class="kw">SELECT</span> camp_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> total
+<span class="kw">FROM</span> bookings
+<span class="kw">GROUP</span> <span class="kw">BY</span> camp_id
+<span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) >= <span class="num">10</span>;
+
+<span class="kw">-- Window function: most recent booking per camp, WITHOUT collapsing rows</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> camp_id <span class="kw">ORDER</span> <span class="kw">BY</span> booking_date <span class="kw">DESC</span>) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> bookings
+) ranked
+<span class="kw">WHERE</span> rn = <span class="num">1</span>;
+
+<span class="kw">-- Running total per camp, ordered by date</span>
+<span class="kw">SELECT</span> camp_id, booking_date, amount,
+  <span class="fn">SUM</span>(amount) <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> camp_id <span class="kw">ORDER</span> <span class="kw">BY</span> booking_date) <span class="kw">AS</span> running_total
+<span class="kw">FROM</span> bookings;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Reach for window functions before self-joins or app-level loops for per-group ranking, running totals, or "latest per group" queries.</li>
+          <li>Remember the logical execution order: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY — it explains most GROUP BY/HAVING confusion.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 10 ============ -->
+      <section class="topic" data-topic="10" id="t10">
+        <div class="topic-head">
+          <h2><span class="tagnum">10.</span> Pagination &amp; Scaling: Offset vs Cursor, Replication, Sharding</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="10">☆</button>
+            <button class="check-btn" data-ck="10">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Offset-based pagination</strong> (<code>LIMIT 20 OFFSET 100</code>) is simple but gets progressively slower on deep pages, because the database still has to scan and discard all the skipped rows before returning the page — and it's unstable if rows are inserted/deleted between page loads, causing skipped or duplicated rows. <strong>Cursor-based (keyset) pagination</strong> instead uses the last row's sort value as a bookmark (<code>WHERE id > :last_id ORDER BY id LIMIT 20</code>), which stays fast at any depth since it goes straight to an index position instead of scanning and discarding. For scaling beyond a single database: <strong>replication</strong> keeps read replicas in sync with a primary (writes go to the primary, reads can be distributed across replicas) for read scaling and redundancy; <strong>sharding</strong> splits data horizontally across multiple database instances by some key (e.g. by <code>camp_id</code> range or hash) when a single instance can't hold or serve the full dataset — a much bigger architectural commitment than replication, since cross-shard queries and joins become significantly harder.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Offset pagination degrading at scale is a very common real production issue that only shows up once a table has genuinely large row counts — asking about it tests whether you've actually operated something at scale versus only built features against small dev datasets.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A camp listing/search results feed that supports infinite scroll is exactly where cursor-based pagination earns its complexity over offset — as the dataset grows, offset pagination on page 500 would mean scanning and discarding 10,000 rows before returning the next 20, while cursor pagination stays consistently fast regardless of depth.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Defaulting to offset pagination everywhere without recognizing it degrades on large tables/deep pages — fine for a small admin table, a real problem for a public search feed at scale.</li>
+          <li>Implementing cursor pagination without a properly indexed, unique sort column (or tuple) to build the cursor from, which breaks the "stays fast at any depth" guarantee.</li>
+          <li>Reaching for sharding as a first solution to a scaling problem that read replication (or better indexing/caching) would have solved far more simply — sharding is a significant, often premature architectural commitment.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"For most admin-facing or shallow-paginated UIs, offset pagination is simple and fine. The moment there's a deep, high-traffic feed — public search results, infinite scroll — I switch to cursor-based pagination, keying off a unique, indexed sort column, since it stays fast at any depth instead of degrading as the offset grows. On scaling more broadly, I'd reach for read replicas long before sharding — replication is a much smaller architectural change and solves read-heavy load on its own; sharding is a last resort once a single instance genuinely can't hold or serve the dataset, because it makes cross-shard queries and joins significantly harder."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why does OFFSET get slower as the page number increases?</li>
+          <li>Implement cursor-based pagination for a feed sorted by created_at.</li>
+          <li>What's the difference between replication and sharding, and which would you reach for first?</li>
+        </ul>
+
+        <pre><code><span class="kw">-- Offset pagination: gets slower deeper in — scans + discards 10,000 rows</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> camps <span class="kw">ORDER</span> <span class="kw">BY</span> id <span class="kw">LIMIT</span> <span class="num">20</span> <span class="kw">OFFSET</span> <span class="num">10000</span>;
+
+<span class="kw">-- Cursor pagination: goes straight to the index position, stays fast</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> camps
+<span class="kw">WHERE</span> id > <span class="num">10000</span>  <span class="cmt">-- :last_seen_id from the previous page</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> id
+<span class="kw">LIMIT</span> <span class="num">20</span>;</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Use cursor-based pagination for any deep, high-traffic, or infinite-scroll feed; keep offset for small/shallow admin views where simplicity wins.</li>
+          <li>Exhaust indexing, caching, and read replication before considering sharding — it's a major, hard-to-reverse architectural commitment.</li>
+        </ul>
+      </section>
+
+      <!-- ============ RAPID FIRE ============ -->
+      <section class="topic" id="rapidfire">
+        <div class="topic-head"><h2><span class="tagnum">⚡</span> Rapid-Fire Q&amp;A — Database &amp; SQL</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">Click any question to reveal a tight, interview-ready answer.</p>
+        <div class="rapid-grid" id="rapid-grid"></div>
+      </section>
+
+      <!-- ============ CHEAT SHEET ============ -->
+      <section class="topic" id="cheatsheet-section">
+        <div class="topic-head"><h2><span class="tagnum">📋</span> Printable Revision Cheat Sheet</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">One line per concept — for the 10 minutes before you walk in.</p>
+        <div class="cheatsheet">
+          <table>
+            <tr><th>Concept</th><th>One-line answer</th></tr>
+            <tr><td>Leftmost prefix rule</td><td>Composite index (a,b) helps queries on a, or a+b — not b alone.</td></tr>
+            <tr><td>Covering index</td><td>Index contains every column the query needs — no table row lookup at all.</td></tr>
+            <tr><td>Normalization</td><td>Splits data to remove redundancy; prevents update anomalies, needs joins.</td></tr>
+            <tr><td>Denormalization</td><td>Deliberate redundancy for read speed; needs a sync strategy.</td></tr>
+            <tr><td>INNER vs LEFT JOIN</td><td>INNER: only matches. LEFT: all of left table, NULLs for no match.</td></tr>
+            <tr><td>WHERE vs ON (LEFT JOIN)</td><td>Filtering right-table cols in WHERE silently turns LEFT JOIN into INNER.</td></tr>
+            <tr><td>ACID</td><td>Atomicity, Consistency, Isolation, Durability.</td></tr>
+            <tr><td>Dirty read</td><td>Seeing another transaction's uncommitted change — only in Read Uncommitted.</td></tr>
+            <tr><td>Phantom read</td><td>New rows appear on repeated read within a transaction — possible up to Repeatable Read.</td></tr>
+            <tr><td>Pessimistic vs optimistic lock</td><td>Pessimistic: SELECT...FOR UPDATE blocks others. Optimistic: version column, detect conflict on write.</td></tr>
+            <tr><td>EXPLAIN type column</td><td>ALL = full scan (bad). range/ref = index used (good). const = best case.</td></tr>
+            <tr><td>Using filesort</td><td>DB sorting in memory/disk instead of via index — often fixable with the right index.</td></tr>
+            <tr><td>Correlated subquery</td><td>References outer query column; re-runs per outer row — often rewritable as a join.</td></tr>
+            <tr><td>CTE</td><td>Named temporary result set via WITH; required for recursive queries.</td></tr>
+            <tr><td>Foreign key ON DELETE</td><td>CASCADE deletes dependents, RESTRICT blocks, SET NULL nulls the reference.</td></tr>
+            <tr><td>Unique constraint vs PK</td><td>Unique allows NULL and multiple per table; PK is one, non-null, usually auto-indexed.</td></tr>
+            <tr><td>WHERE vs HAVING</td><td>WHERE filters rows before grouping; HAVING filters groups after aggregation.</td></tr>
+            <tr><td>Window function</td><td>Computes an aggregate per row without collapsing rows — use PARTITION BY.</td></tr>
+            <tr><td>Offset vs cursor pagination</td><td>Offset slows on deep pages (scans+discards); cursor stays fast via indexed bookmark.</td></tr>
+            <tr><td>Replication vs sharding</td><td>Replication: read scaling/redundancy, same full dataset. Sharding: splits data across instances.</td></tr>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="part-footer">
+      <div class="next"><b>Next up</b>Choose Part 2 (React + Next.js), Part 3 (Node.js + Backend Design), Part 6 (System Design), or Part 7 (HR + Project Stories)</div>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">Part 5 of 7 · Database &amp; SQL · complete</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const typedEl = document.getElementById('typed');
+const typedText = "$ mysql -e \"SELECT * FROM interview_prep WHERE chapter = 5\"";
+let ti = 0;
+function typeStep(){
+  if(ti <= typedText.length){ typedEl.textContent = typedText.slice(0, ti); ti++; setTimeout(typeStep, 18); }
+}
+typeStep();
+
+const topics = [
+  {id:1, title:'Indexes & Composite Indexes'},
+  {id:2, title:'Normalization vs Denormalization'},
+  {id:3, title:'Joins — Inner, Left, Right, Cross, Self'},
+  {id:4, title:'Transactions, ACID & Isolation Levels'},
+  {id:5, title:'Query Optimization & EXPLAIN'},
+  {id:6, title:'Subqueries vs Joins vs CTEs'},
+  {id:7, title:'Views, Stored Procedures & Triggers'},
+  {id:8, title:'Keys & Constraints, Referential Integrity'},
+  {id:9, title:'Aggregation: GROUP BY & Window Functions'},
+  {id:10, title:'Pagination, Replication & Sharding'},
+];
+
+const tocEl = document.getElementById('toc');
+topics.forEach(t=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#t${t.id}" data-toc="${t.id}">${String(t.id).padStart(2,'0')}. ${t.title}</a>`;
+  tocEl.appendChild(li);
+});
+
+const LS_CHECK = 'ip_ch5_checked';
+const LS_BOOKMARK = 'ip_ch5_bookmarks';
+const getChecked = () => JSON.parse(localStorage.getItem(LS_CHECK) || '[]');
+const setChecked = (arr) => localStorage.setItem(LS_CHECK, JSON.stringify(arr));
+const getBookmarks = () => JSON.parse(localStorage.getItem(LS_BOOKMARK) || '[]');
+const setBookmarks = (arr) => localStorage.setItem(LS_BOOKMARK, JSON.stringify(arr));
+
+function refreshProgress(){
+  const checked = getChecked();
+  document.getElementById('progress-text').textContent = `${checked.length} / ${topics.length}`;
+  document.getElementById('progress-fill').style.width = (checked.length/topics.length*100) + '%';
+  document.querySelectorAll('.check-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-ck');
+    btn.classList.toggle('active', checked.includes(id));
+  });
+  document.querySelectorAll('.toc a[data-toc]').forEach(a=>{
+    a.classList.toggle('done', checked.includes(a.getAttribute('data-toc')));
+  });
+}
+
+function refreshBookmarks(){
+  const bm = getBookmarks();
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-bm');
+    btn.classList.toggle('active', bm.includes(id));
+    btn.textContent = bm.includes(id) ? '★' : '☆';
+  });
+  const list = document.getElementById('bookmark-list');
+  if(bm.length === 0){
+    list.innerHTML = '<li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li>';
+    return;
+  }
+  list.innerHTML = bm.map(id=>{
+    const t = topics.find(t=>String(t.id)===String(id));
+    return t ? `<li><a href="#t${t.id}">★ ${t.title}</a></li>` : '';
+  }).join('');
+}
+
+document.querySelectorAll('.check-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-ck');
+    let checked = getChecked();
+    checked = checked.includes(id) ? checked.filter(x=>x!==id) : [...checked, id];
+    setChecked(checked);
+    refreshProgress();
+  });
+});
+
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-bm');
+    let bm = getBookmarks();
+    bm = bm.includes(id) ? bm.filter(x=>x!==id) : [...bm, id];
+    setBookmarks(bm);
+    refreshBookmarks();
+  });
+});
+
+refreshProgress();
+refreshBookmarks();
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const codeText = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(codeText).then(()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(()=> btn.textContent = orig, 1200);
+    });
+  });
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('section.topic[data-topic]').forEach(sec=>{
+    const text = sec.innerText.toLowerCase();
+    sec.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+
+const rapidFire = [
+  ["What's the difference between DELETE, TRUNCATE, and DROP?", "DELETE removes rows (can be filtered, logged, rolled back), TRUNCATE removes all rows fast without row-level logging (usually can't be rolled back, resets auto-increment), DROP removes the entire table structure."],
+  ["What is a composite key?", "A primary key made up of two or more columns together, where the combination is what's guaranteed unique — common in pivot/junction tables."],
+  ["What does UNION vs UNION ALL do?", "UNION combines result sets and removes duplicates (extra sorting cost); UNION ALL combines them keeping duplicates, faster since no dedup step is needed."],
+  ["What is a self-referencing foreign key?", "A foreign key in a table that references the primary key of that same table — e.g. an employees table where manager_id references employees.id."],
+  ["What's the difference between CHAR and VARCHAR?", "CHAR is fixed-length, padded with spaces to the declared size; VARCHAR is variable-length, storing only the actual characters plus a small length prefix."],
+  ["What is database sharding, in one line?", "Splitting a dataset horizontally across multiple database instances by some key, so no single instance holds the entire dataset."],
+  ["What's the N+1 query problem?", "Fetching N parent rows then looping to fetch related data one query per row, instead of batching the related fetch into one or two queries total."],
+  ["What is a database index's storage trade-off?", "Faster reads on the indexed column(s) at the cost of extra disk space and slower writes, since every insert/update/delete must also update the index."],
+  ["What does EXPLAIN's 'rows' column actually mean?", "The estimated number of rows the database expects to examine to produce the result — an estimate from statistics, not necessarily the exact final row count returned."],
+  ["What is the difference between a clustered and non-clustered index?", "A clustered index determines the physical storage order of table rows (usually the primary key in InnoDB) — a table can have only one. A non-clustered (secondary) index is a separate structure pointing back to the row."],
+  ["What's a database deadlock?", "Two transactions each holding a lock the other needs, both waiting indefinitely — most databases detect this and automatically abort one transaction to break the cycle."],
+  ["What does NOT NULL vs DEFAULT do?", "NOT NULL requires a value to be provided; DEFAULT supplies a fallback value automatically when none is given — they're independent, often used together."],
+  ["What is database connection pooling?", "Reusing a limited set of open database connections across requests instead of opening/closing a new connection per request, since connection setup is relatively expensive."],
+  ["What's the difference between a natural key and a surrogate key?", "A natural key is a real-world unique attribute (like an email or SSN) used as the primary key; a surrogate key is an artificial one (like an auto-increment ID) with no business meaning, generally preferred for stability."],
+  ["What does ORDER BY without LIMIT risk on a large table?", "Sorting the entire result set even if only a portion is displayed, which can be expensive — always pair ORDER BY with LIMIT when only a page of results is needed."],
+  ["What is a materialized view?", "A view that physically stores its query result (unlike a regular view, which re-runs the query each time) — faster reads, but needs an explicit refresh strategy to avoid staleness."],
+  ["What's the purpose of database migrations?", "Version-controlled, incremental, repeatable changes to schema structure, so the database schema can be tracked and reproduced across environments just like application code."],
+  ["What does a full table scan mean, and when is it actually fine?", "The database reads every row instead of using an index — genuinely fine on small tables or when a large percentage of rows will be returned anyway, where an index lookup wouldn't be faster."],
+  ["What's the difference between horizontal and vertical scaling for a database?", "Vertical: bigger single machine (more CPU/RAM). Horizontal: more machines sharing the load (replicas or shards) — horizontal has a higher ceiling but more architectural complexity."],
+  ["What is an idempotency key used for at the database level?", "A unique value stored per operation (e.g. per payment attempt) with a unique constraint, so a retried request can be detected and safely ignored instead of processed twice."],
+  ["What does SELECT DISTINCT do, and what's its cost?", "Removes duplicate rows from the result set — requires comparing/sorting rows internally, which has a real performance cost on large result sets."],
+  ["What is the difference between a hot backup and a cold backup?", "A hot backup is taken while the database is live and serving traffic; a cold backup requires the database to be offline, guaranteeing a fully consistent snapshot at the cost of downtime."],
+  ["What does 'referential integrity' mean in one line?", "Foreign key values must always correspond to an existing primary key value in the referenced table — no orphaned references."],
+  ["What is a partial index?", "An index built on only a subset of rows matching a condition (e.g. WHERE status = 'active'), smaller and faster than a full index when queries consistently filter on that condition."],
+  ["Why avoid SELECT * in production code?", "Fetches unnecessary columns (wasted I/O/network), breaks covering-index optimization, and silently changes behavior if the table's columns change later."],
+];
+const grid = document.getElementById('rapid-grid');
+rapidFire.forEach(([q,a])=>{
+  const d = document.createElement('details');
+  d.className = 'qa';
+  d.innerHTML = `<summary>${q}</summary><div class="ans">${a}</div>`;
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>
