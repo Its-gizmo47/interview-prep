@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep :: Part 4 — PHP &amp; Laravel</title>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --surface:#11151c;
+    --surface-alt:#171c26;
+    --border:#232936;
+    --text:#d7dce3;
+    --text-dim:#8b93a1;
+    --text-faint:#5c6472;
+    --accent:#e3b341;
+    --accent-dim:#8a6d2a;
+    --cyan:#5fd3bc;
+    --red:#e8735c;
+    --green:#6fcf97;
+    --mono: 'SF Mono', 'Fira Code', Consolas, Menlo, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    font-size:15px; line-height:1.65;
+  }
+  ::selection{background:var(--accent); color:#161616;}
+  a{color:var(--cyan);}
+  code, pre{font-family:var(--mono);}
+  code{background:var(--surface-alt); padding:2px 6px; border-radius:4px; color:var(--accent); font-size:0.87em;}
+
+  #app{display:flex; min-height:100vh;}
+  #sidebar{
+    width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+    position:fixed; top:0; left:0; bottom:0; overflow-y:auto; padding:20px 16px 40px;
+  }
+  #main{margin-left:300px; flex:1; min-width:0; padding:0;}
+  @media (max-width: 900px){
+    #sidebar{position:relative; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);}
+    #main{margin-left:0;}
+    #app{flex-direction:column;}
+  }
+
+  .brand{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:0.5px; margin-bottom:4px;}
+  .brand-title{font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:18px; font-weight:600;}
+  #search{
+    width:100%; padding:9px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:6px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+  .search-hint{font-size:11px; color:var(--text-faint); margin-bottom:18px; font-family:var(--mono);}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--bg); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s;}
+
+  .chapters{list-style:none; padding:0; margin:0 0 20px;}
+  .chapters li{margin-bottom:2px;}
+  .chapters a{
+    display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text-dim);
+    font-size:13px; padding:7px 8px; border-radius:var(--radius);
+  }
+  .chapters a.active, .chapters li.current a{color:var(--accent); background:var(--surface-alt);}
+  .chapters .chnum{font-family:var(--mono); color:var(--text-faint); font-size:11px; width:18px; flex-shrink:0;}
+  .chapters li.current .chnum{color:var(--accent);}
+  .chapters .soon{font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-left:auto;}
+  .chapters .done-tag{font-size:10px; color:var(--green); font-family:var(--mono); margin-left:auto;}
+
+  .toc{list-style:none; padding:0; margin:0;}
+  .toc-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .toc li a{
+    display:block; text-decoration:none; color:var(--text-dim); font-size:12.5px; padding:5px 8px 5px 20px;
+    border-left:2px solid transparent; border-radius:0 4px 4px 0;
+  }
+  .toc li a:hover{color:var(--text);}
+  .toc li a.done{color:var(--green);}
+  .toc li a.done::before{content:"✓ "; color:var(--green);}
+
+  .hero{
+    padding:56px 48px 40px; border-bottom:1px solid var(--border);
+    background: radial-gradient(600px 200px at 85% -20%, rgba(227,179,65,0.08), transparent);
+  }
+  .hero-eyebrow{font-family:var(--mono); color:var(--text-faint); font-size:12px; margin-bottom:10px;}
+  #typed{font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:18px; min-height:18px;}
+  #typed::after{content:"█"; animation:blink 1s step-start infinite; color:var(--accent);}
+  @keyframes blink{50%{opacity:0;}}
+  .hero h1{font-family:var(--mono); font-size:clamp(28px,4vw,42px); margin:0 0 14px; color:#fff; line-height:1.25;}
+  .hero p{color:var(--text-dim); max-width:680px; font-size:15px;}
+  .hero-stats{display:flex; gap:28px; margin-top:26px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono);}
+  .stat b{color:var(--accent); font-size:20px; display:block;}
+  .stat span{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .content{padding:8px 48px 80px; max-width:920px;}
+  section.topic{border-bottom:1px solid var(--border); padding:36px 0;}
+  section.topic:first-of-type{padding-top:28px;}
+
+  .topic-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px;}
+  .topic-head h2{font-family:var(--mono); font-size:22px; color:#fff; margin:0; display:flex; align-items:center; gap:10px;}
+  .topic-head h2 .tagnum{color:var(--accent);}
+  .topic-controls{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .diff{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;}
+  .diff.mid{color:var(--accent); border-color:var(--accent-dim);}
+  .diff.senior{color:var(--red); border-color:#5a3229;}
+  .star-btn, .check-btn{
+    background:none; border:1px solid var(--border); color:var(--text-faint); cursor:pointer;
+    border-radius:5px; padding:5px 8px; font-size:14px; line-height:1;
+  }
+  .star-btn.active{color:var(--accent); border-color:var(--accent-dim);}
+  .check-btn.active{color:var(--green); border-color:#2c5a41;}
+
+  .subhead{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin:22px 0 8px;}
+  .subhead.mistakes{color:var(--red);}
+  .subhead.best{color:var(--green);}
+  .topic p{margin:0 0 10px; color:var(--text);}
+  .topic ul{margin:6px 0 10px; padding-left:20px;}
+  .topic li{margin-bottom:5px; color:var(--text);}
+
+  pre{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; font-size:12.8px; position:relative; margin:10px 0;
+  }
+  pre code{background:none; padding:0; color:var(--text);}
+  .kw{color:#c586c0;} .str{color:var(--green);} .cmt{color:var(--text-faint); font-style:italic;} .fn{color:#5fb3d3;} .num{color:#e3b341;} .var{color:#9cdcfe;}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-dim); font-family:var(--mono); font-size:10.5px; padding:4px 8px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);}
+
+  .callout{border-left:3px solid var(--accent); background:var(--surface); padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim);}
+  .followups{list-style:none; padding:0; margin:8px 0;}
+  .followups li{ font-size:13.5px; color:var(--text-dim); padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border); }
+  .followups li::before{content:"↳"; position:absolute; left:0; color:var(--text-faint);}
+  .followups li:last-child{border-bottom:none;}
+
+  .rapid-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 32px;}
+  @media (max-width:700px){.rapid-grid{grid-template-columns:1fr;}}
+  details.qa{border-bottom:1px solid var(--border); padding:10px 0;}
+  details.qa summary{cursor:pointer; color:var(--text); font-size:13.5px; list-style:none; display:flex; gap:8px;}
+  details.qa summary::before{content:"▸"; color:var(--accent); flex-shrink:0;}
+  details.qa[open] summary::before{content:"▾";}
+  details.qa summary::-webkit-details-marker{display:none;}
+  details.qa .ans{padding:8px 0 0 18px; color:var(--text-dim); font-size:13px;}
+
+  .part-footer{
+    padding:50px 48px; border-top:1px solid var(--border); background:var(--surface);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .part-footer .next{font-family:var(--mono); color:var(--text-dim); font-size:13px;}
+  .part-footer .next b{color:var(--accent); display:block; font-size:15px; margin-bottom:4px;}
+  .kbd{font-family:var(--mono); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--text-dim);}
+
+  .cheatsheet{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:22px 26px; margin:20px 0;}
+  .cheatsheet table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cheatsheet th{text-align:left; font-family:var(--mono); color:var(--text-faint); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);}
+  .cheatsheet td{padding:7px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); vertical-align:top;}
+  .cheatsheet td:first-child{color:var(--accent); font-family:var(--mono); white-space:nowrap;}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="brand">$ interview-prep --guide</div>
+    <div class="brand-title">Full-Stack Interview Handbook</div>
+
+    <input type="text" id="search" placeholder="/ search this chapter…" autocomplete="off">
+    <div class="search-hint">press <span class="kbd">/</span> to focus · <span class="kbd">esc</span> to clear</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>CH.4 PROGRESS</span><span id="progress-text">0 / 10</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <ul class="chapters">
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">01</span> JavaScript + DOM <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">02</span> React + Next.js <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">03</span> Node.js + Backend Design <span class="soon">soon</span></a></li>
+      <li class="current"><a href="#top"><span class="chnum">04</span> PHP + Laravel</a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">05</span> Database + SQL <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">06</span> System Design <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">07</span> HR + Project Stories <span class="soon">soon</span></a></li>
+    </ul>
+
+    <div class="toc-title">On this page</div>
+    <ul class="toc" id="toc"></ul>
+
+    <div class="toc-title">Bookmarks</div>
+    <ul class="toc" id="bookmark-list"><li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li></ul>
+  </aside>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="hero-eyebrow">CHAPTER 4 OF 7 · BACKEND LANGUAGE + FRAMEWORK LAYER</div>
+      <div id="typed"></div>
+      <h1>PHP &amp; Laravel,<br>from language fundamentals to framework internals</h1>
+      <p>Ten core topics — PHP OOP, Composer/autoloading, the service container, providers &amp; facades, Eloquent, middleware/auth, queues &amp; events, the Repository/Service pattern you've actually shipped, caching &amp; the N+1 problem, and testing/Artisan — each broken down the same way as Chapter 1. Then 25 rapid-fire questions and a cheat sheet.</p>
+      <div class="hero-stats">
+        <div class="stat"><b>10</b><span>Deep Topics</span></div>
+        <div class="stat"><b>25</b><span>Rapid Fire Q&amp;A</span></div>
+        <div class="stat"><b>30+</b><span>Code Examples</span></div>
+        <div class="stat"><b>3</b><span>Chapters Remaining</span></div>
+      </div>
+    </section>
+
+    <div class="content">
+
+      <!-- ============ TOPIC 1 ============ -->
+      <section class="topic" data-topic="1" id="t1">
+        <div class="topic-head">
+          <h2><span class="tagnum">01.</span> PHP OOP Core: Classes, Interfaces, Traits, Abstracts, Static</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="1">☆</button>
+            <button class="check-btn" data-ck="1">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>class</strong> defines the blueprint (properties + methods); an <strong>interface</strong> defines a contract — method signatures only, no implementation — that any implementing class must fulfill, enabling polymorphism without inheritance. An <strong>abstract class</strong> sits between the two: it can hold real implementation and state like a normal class, but can also declare abstract methods that subclasses <em>must</em> implement, and it can't be instantiated directly. A <strong>trait</strong> is PHP's answer to the lack of multiple inheritance — it lets you literally paste a reusable block of methods into multiple unrelated classes via <code>use</code>. <strong>Static</strong> properties/methods belong to the class itself, not an instance, and are shared across all instances. <strong>Magic methods</strong> (<code>__construct</code>, <code>__get</code>/<code>__set</code>, <code>__call</code>, <code>__toString</code>) hook into PHP's default object behavior.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is the baseline gate for any Laravel role — Laravel's entire architecture (contracts, service providers, facades) is built on interfaces and abstract classes, so shaky OOP fundamentals show up immediately once the interview moves into framework internals.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>In your CampVine refactor, defining a <code>PaymentGatewayInterface</code> with a concrete <code>StripeGateway</code> and <code>ManualGateway</code> implementation is exactly this pattern — the booking logic depends only on the interface, so swapping payment providers doesn't touch business logic. Traits are the natural fit for cross-cutting behavior like an <code>HasUuid</code> or <code>Cacheable</code> trait shared across otherwise-unrelated Eloquent models.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using a trait where the relationship is really "is-a" (should be inheritance/interface) rather than "has-behavior-of" — traits are for shared behavior, not shared identity.</li>
+          <li>Confusing an abstract class (can have implementation + state, single inheritance) with an interface (contract only, a class can implement many).</li>
+          <li>Making everything static "for convenience," which makes code hard to test since static calls can't be mocked/injected as easily as instance dependencies.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I reach for an interface when I want to guarantee a contract across implementations I don't control the internals of — like swappable payment gateways — and an abstract class when there's real shared logic I want subclasses to inherit plus a few methods I want to force them to define themselves. Traits are for behavior that cuts across an otherwise unrelated class hierarchy, like a UUID-generation trait shared by models that have nothing else in common. I avoid static methods for anything I'll need to mock in tests — they break dependency injection."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Can a class implement multiple interfaces but extend only one class — why is that the design?</li>
+          <li>What happens if two traits used in the same class define a method with the same name?</li>
+          <li>When would you choose an abstract class over an interface with default trait behavior?</li>
+        </ul>
+
+        <pre><code><span class="kw">interface</span> <span class="fn">PaymentGatewayInterface</span> {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">charge</span>(<span class="kw">float</span> $amount): <span class="kw">bool</span>;
+}
+
+<span class="kw">abstract</span> <span class="kw">class</span> <span class="fn">BaseGateway</span> <span class="kw">implements</span> PaymentGatewayInterface {
+  <span class="kw">protected</span> <span class="kw">function</span> <span class="fn">logTransaction</span>(<span class="kw">float</span> $amount): <span class="kw">void</span> { <span class="cmt">/* shared */</span> }
+  <span class="kw">abstract</span> <span class="kw">public</span> <span class="kw">function</span> <span class="fn">charge</span>(<span class="kw">float</span> $amount): <span class="kw">bool</span>; <span class="cmt">// subclasses must implement</span>
+}
+
+<span class="kw">trait</span> <span class="fn">HasUuid</span> {
+  <span class="kw">public</span> <span class="kw">static</span> <span class="kw">function</span> <span class="fn">bootHasUuid</span>() {
+    <span class="kw">static</span>::<span class="fn">creating</span>(<span class="kw">fn</span>($model) => $model->id = <span class="fn">Str</span>::<span class="fn">uuid</span>());
+  }
+}
+
+<span class="kw">class</span> <span class="fn">StripeGateway</span> <span class="kw">extends</span> BaseGateway {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">charge</span>(<span class="kw">float</span> $amount): <span class="kw">bool</span> { <span class="cmt">/* Stripe-specific */</span> <span class="kw">return</span> <span class="kw">true</span>; }
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Program against interfaces in constructors/type-hints so implementations can be swapped and mocked in tests.</li>
+          <li>Keep traits small and behavior-focused; if a trait is accumulating unrelated methods, it's a sign it should be split or replaced with composition.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 2 ============ -->
+      <section class="topic" data-topic="2" id="t2">
+        <div class="topic-head">
+          <h2><span class="tagnum">02.</span> Composer, Autoloading &amp; PSR-4 Namespaces</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="2">☆</button>
+            <button class="check-btn" data-ck="2">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Composer is PHP's dependency manager — <code>composer.json</code> declares required packages and their version constraints, <code>composer.lock</code> pins the exact resolved versions for reproducible installs across environments. <strong>Autoloading</strong> means you never manually <code>require</code> class files — Composer generates an autoloader (typically <strong>PSR-4</strong>) that maps namespace prefixes to directory paths, so referencing <code>App\Services\PaymentService</code> automatically loads <code>app/Services/PaymentService.php</code> on first use. Namespaces prevent class name collisions between your code and third-party packages and organize large codebases logically, mirroring the folder structure by convention.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>It's a quick fluency check for whether you understand what's happening under Laravel's conventions rather than just following folder patterns by habit — relevant the moment you restructure a codebase or debug a "class not found" error.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Directly relevant to your CampVine DDD refactor — introducing bounded-context folders (e.g. <code>app/Domain/Booking</code>, <code>app/Domain/Payment</code>) instead of Laravel's flat default structure requires updating the PSR-4 mapping in <code>composer.json</code> and running <code>composer dump-autoload</code> so the new namespace paths resolve correctly.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Manually editing vendor files instead of extending them, then losing the changes on the next <code>composer update</code>.</li>
+          <li>Committing <code>composer.lock</code> inconsistently — not committing it at all causes "works on my machine" version drift between environments.</li>
+          <li>Not understanding that renaming/moving a class requires the namespace declaration to match its new path exactly, or the PSR-4 autoloader silently fails to find it.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Composer resolves and locks dependency versions via composer.lock so every environment installs the exact same tree, and its PSR-4 autoloader maps namespace prefixes straight to folder paths, so I never manually require files — I just reference the fully-qualified class name and Composer's generated autoloader finds it. When I restructure code into domain folders for something like a DDD refactor, I add the new namespace mapping to composer.json and run composer dump-autoload to regenerate the class map."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's the difference between composer.json and composer.lock, and why commit both?</li>
+          <li>What happens if a class's namespace doesn't match its file path under PSR-4?</li>
+          <li>How would you add a custom namespace mapping for a new domain folder structure?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// composer.json — PSR-4 autoload mapping</span>
+{
+  <span class="str">"autoload"</span>: {
+    <span class="str">"psr-4"</span>: {
+      <span class="str">"App\\"</span>: <span class="str">"app/"</span>,
+      <span class="str">"App\\Domain\\"</span>: <span class="str">"app/Domain/"</span>
+    }
+  }
+}
+
+<span class="cmt">// After adding a new namespace mapping, regenerate the autoloader:</span>
+<span class="cmt">// $ composer dump-autoload</span>
+
+<span class="kw">namespace</span> App\Domain\Booking;
+<span class="kw">class</span> <span class="fn">BookingService</span> { <span class="cmt">/* app/Domain/Booking/BookingService.php */</span> }</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always commit <code>composer.lock</code> for applications (not for reusable packages) to guarantee identical installs across dev/staging/prod.</li>
+          <li>Never edit files in <code>vendor/</code> directly — extend, decorate, or publish a config/view override instead.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 3 ============ -->
+      <section class="topic" data-topic="3" id="t3">
+        <div class="topic-head">
+          <h2><span class="tagnum">03.</span> Service Container &amp; Dependency Injection</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="3">☆</button>
+            <button class="check-btn" data-ck="3">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Laravel's <strong>service container</strong> is a dependency injection (DI) container — a central registry that knows how to build classes and resolve their constructor dependencies automatically via <em>reflection</em>. Instead of a class manually instantiating what it needs (tight coupling), it type-hints an interface in its constructor, and the container resolves the concrete implementation at runtime. Bindings are registered as <strong>bind</strong> (a new instance every resolution) or <strong>singleton</strong> (one shared instance for the app's lifetime) — typically inside a service provider's <code>register()</code> method. This is what makes Laravel's automatic constructor injection in controllers, jobs, and form requests possible without any manual wiring.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>The service container is the architectural core of Laravel — nearly everything else (facades, providers, contracts) is built on top of it. Understanding it signals you can build genuinely testable, swappable, decoupled code instead of hardcoding <code>new SomeClass()</code> everywhere.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Your CampVine Service-Repository refactor depends entirely on this: binding <code>CampRepositoryInterface</code> to <code>EloquentCampRepository</code> in a service provider means the service layer never knows or cares it's talking to Eloquent — swap to a different persistence mechanism, or inject a fake repository in tests, without touching a single service class.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Resolving dependencies manually via the <code>app()</code> helper deep inside business logic (service locator anti-pattern) instead of constructor-injecting them — hides dependencies and makes testing harder.</li>
+          <li>Binding something as a singleton that actually needs fresh state per request/resolution, causing subtle shared-state bugs.</li>
+          <li>Not knowing that Laravel auto-resolves concrete classes with no bindings at all via reflection — bindings are only strictly necessary when injecting an <em>interface</em>.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The service container resolves class dependencies automatically through reflection, so if a class type-hints a concrete class with no binding registered, Laravel just builds it. The binding step becomes necessary the moment you type-hint an interface — I tell the container in a service provider which concrete implementation satisfies that interface, using bind for a fresh instance each time or singleton when I want one shared instance, like a config object or a connection pool. That's the mechanism that let me swap Eloquent-backed repositories for fakes in tests without changing any service-layer code."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's the difference between bind() and singleton()? Give a real example of when each is correct.</li>
+          <li>How does Laravel resolve a class with no explicit binding at all?</li>
+          <li>Why is manually calling app(SomeService::class) inside a controller method considered an anti-pattern?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// In a Service Provider's register() method:</span>
+<span class="kw">public</span> <span class="kw">function</span> <span class="fn">register</span>(): <span class="kw">void</span>
+{
+  <span class="kw">$this</span>->app->bind(
+    CampRepositoryInterface::<span class="kw">class</span>,
+    EloquentCampRepository::<span class="kw">class</span>
+  );
+  <span class="kw">$this</span>->app->singleton(PricingCalculator::<span class="kw">class</span>);
+}
+
+<span class="cmt">// Constructor injection — Laravel resolves this automatically:</span>
+<span class="kw">class</span> <span class="fn">CampService</span> {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">__construct</span>(
+    <span class="kw">private</span> CampRepositoryInterface $repository
+  ) {}
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Constructor-inject dependencies; reserve the <code>app()</code> helper for framework bootstrap code, not business logic.</li>
+          <li>Bind interfaces to implementations in a dedicated service provider per domain/module rather than dumping everything in <code>AppServiceProvider</code>.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 4 ============ -->
+      <section class="topic" data-topic="4" id="t4">
+        <div class="topic-head">
+          <h2><span class="tagnum">04.</span> Service Providers &amp; Facades</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="4">☆</button>
+            <button class="check-btn" data-ck="4">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>service provider</strong> is Laravel's central place to bootstrap the application — bind things into the container (<code>register()</code>) and run setup logic once everything is registered (<code>boot()</code>), like registering routes, view composers, event listeners, or publishing config. <strong>Facades</strong> (<code>Route::</code>, <code>Cache::</code>, <code>DB::</code>) provide a static-looking interface to an object that's actually resolved from the container behind the scenes — under the hood, a facade's <code>__callStatic</code> magic method forwards the call to the real, container-resolved instance. So facades aren't "really" static — they're syntactic sugar over dependency injection.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Facades are one of the most misunderstood parts of Laravel — a lot of developers use them daily without knowing they're not actually static calls, and that gap shows up as soon as an interviewer asks "how would you test code that uses a facade?"</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Registering a custom domain-specific service provider per bounded context (e.g. a <code>BookingServiceProvider</code>) is exactly the kind of structural decision that comes up in a DDD-style refactor like CampVine's, keeping bindings scoped and discoverable instead of one giant provider.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Believing facades can't be tested/mocked because they "look static" — Laravel facades are fully mockable via <code>Facade::shouldReceive()</code> precisely because they resolve from the container.</li>
+          <li>Putting heavy logic directly in <code>boot()</code> that should live in a dedicated service class — providers should wire things up, not contain business logic.</li>
+          <li>Registering bindings in <code>boot()</code> instead of <code>register()</code> — bindings should be registered before any provider's boot phase runs, since other providers' boot methods may depend on them already being available.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"A facade looks like a static call but under the hood it's forwarding to a real object resolved from the service container via __callStatic — so it's testable like any container-resolved dependency, just with nicer syntax. Service providers are where I wire all of that up: register() is strictly for container bindings, boot() is for anything that needs the rest of the app already registered, like route definitions or event listener registration. For a modular codebase I'll split providers per domain rather than cramming everything into AppServiceProvider."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why does Laravel separate register() and boot() instead of doing everything in one method?</li>
+          <li>How would you mock the Cache facade in a test?</li>
+          <li>What's the real object behind a facade, and how do you find it?</li>
+        </ul>
+
+        <pre><code><span class="kw">class</span> <span class="fn">BookingServiceProvider</span> <span class="kw">extends</span> ServiceProvider {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">register</span>(): <span class="kw">void</span> {
+    <span class="kw">$this</span>->app->bind(BookingRepositoryInterface::<span class="kw">class</span>, EloquentBookingRepository::<span class="kw">class</span>);
+  }
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">boot</span>(): <span class="kw">void</span> {
+    Event::listen(BookingCreated::<span class="kw">class</span>, SendConfirmationEmail::<span class="kw">class</span>);
+  }
+}
+
+<span class="cmt">// Facade call — looks static, actually container-resolved:</span>
+Cache::remember(<span class="str">'camp.'</span>.$id, <span class="num">3600</span>, <span class="kw">fn</span>() => Camp::find($id));
+
+<span class="cmt">// Mocking a facade in a test — proves it's not "really" static:</span>
+Cache::shouldReceive(<span class="str">'remember'</span>)->once()->andReturn($fakeCamp);</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Keep <code>register()</code> to pure bindings only — no logic that depends on other providers being booted yet.</li>
+          <li>Split large apps into feature/domain-scoped service providers instead of one monolithic provider.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 5 ============ -->
+      <section class="topic" data-topic="5" id="t5">
+        <div class="topic-head">
+          <h2><span class="tagnum">05.</span> Eloquent: Relationships, Query Builder &amp; Collections</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="5">☆</button>
+            <button class="check-btn" data-ck="5">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Eloquent is Laravel's ActiveRecord-style ORM — each model maps to a table, and relationships (<code>hasOne</code>, <code>hasMany</code>, <code>belongsTo</code>, <code>belongsToMany</code>, <code>hasManyThrough</code>, polymorphic <code>morphTo</code>/<code>morphMany</code>) are defined as methods that build the underlying query. The <strong>query builder</strong> is the lower-level, fluent SQL abstraction Eloquent itself is built on — you drop to it directly (<code>DB::table(...)</code>) when you don't need model hydration/events, typically for performance on large read-only queries. <strong>Collections</strong> wrap query results in a fluent, chainable API (<code>filter</code>, <code>map</code>, <code>groupBy</code>, <code>each</code>) for working with result sets in memory, similar to Laravel's <code>Arr</code> helpers but object-oriented.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Eloquent relationship and query proficiency is the single most practically-tested Laravel skill, because getting it wrong is the single most common source of real production performance issues (the N+1 problem) and data-modeling bugs (wrong relationship type, missing pivot logic).</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Your CampVine schema migration (127 tables) required exactly this judgment repeatedly — deciding whether a relationship is a true many-to-many needing a pivot table, or a hasManyThrough for indirect relations (e.g. a Camp's Reviews through Bookings), directly shapes both the schema and how efficiently the data can later be queried.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using <code>belongsToMany</code> when a simpler <code>hasMany</code> would do, adding an unnecessary pivot table and query complexity.</li>
+          <li>Not knowing when to drop to the raw query builder for a large reporting query — hydrating thousands of full Eloquent models (with accessors, events, casts) for a query that only needs two columns wastes real memory and time.</li>
+          <li>Chaining collection methods on already-loaded data when the filtering/aggregation could have been pushed down into the SQL query itself, doing the work in the database instead of in PHP.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I default to Eloquent relationships for anything that needs model events, accessors, or is part of the normal domain model, and drop to the raw query builder for heavy read/reporting queries where hydrating full models is wasted overhead — DB::table() skips model instantiation entirely. For relationships specifically, I check the actual cardinality and whether there's meaningful pivot data — a genuine many-to-many with extra pivot columns like a booking's per-guest pricing gets belongsToMany with withPivot, not a workaround with two separate hasMany relationships."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>When would you use the query builder instead of Eloquent for the same data?</li>
+          <li>Explain hasManyThrough with a concrete example from a real schema.</li>
+          <li>How do polymorphic relationships work, and when are they the right call vs a plain foreign key?</li>
+        </ul>
+
+        <pre><code><span class="kw">class</span> <span class="fn">Camp</span> <span class="kw">extends</span> Model {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">bookings</span>(): HasMany { <span class="kw">return</span> <span class="kw">$this</span>->hasMany(Booking::<span class="kw">class</span>); }
+
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">reviews</span>(): HasManyThrough {
+    <span class="kw">return</span> <span class="kw">$this</span>->hasManyThrough(Review::<span class="kw">class</span>, Booking::<span class="kw">class</span>);
+  }
+
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">amenities</span>(): BelongsToMany {
+    <span class="kw">return</span> <span class="kw">$this</span>->belongsToMany(Amenity::<span class="kw">class</span>)->withPivot(<span class="str">'notes'</span>);
+  }
+}
+
+<span class="cmt">// Query builder for a heavy reporting query — no model hydration overhead</span>
+DB::table(<span class="str">'bookings'</span>)
+  ->select(<span class="str">'camp_id'</span>, DB::raw(<span class="str">'COUNT(*) as total'</span>))
+  ->groupBy(<span class="str">'camp_id'</span>)
+  ->get();</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Push filtering/aggregation into the SQL query rather than pulling all rows and filtering with collection methods in PHP.</li>
+          <li>Type-hint relationship return types (<code>HasMany</code>, <code>BelongsTo</code>, etc.) for IDE support and self-documenting schema intent.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 6 ============ -->
+      <section class="topic" data-topic="6" id="t6">
+        <div class="topic-head">
+          <h2><span class="tagnum">06.</span> Middleware, Auth (Sanctum), Policies &amp; Gates</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="6">☆</button>
+            <button class="check-btn" data-ck="6">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Middleware</strong> intercepts requests before they reach a controller (or responses before they return to the client) — used for auth checks, rate limiting, CORS, logging — and forms a pipeline where each layer can pass the request along or short-circuit it. <strong>Authentication</strong> confirms <em>who</em> a user is; <strong>Sanctum</strong> handles this for SPAs and APIs via lightweight token-based auth (or cookie-based auth for first-party SPAs sharing the same domain). <strong>Authorization</strong> confirms <em>what</em> an authenticated user is allowed to do — <strong>Gates</strong> are simple closures for broad permission checks (<code>can I access the admin panel</code>), while <strong>Policies</strong> are classes organized around a specific model, with methods mapping to actions (<code>view</code>, <code>update</code>, <code>delete</code>) — the standard choice once authorization logic is tied to a specific resource.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Auth/authz bugs are security-critical and extremely common — this topic tests whether you reliably separate "is this a valid user" from "is this user allowed to do this specific thing to this specific resource," which is where a lot of real vulnerabilities (like one user editing another user's booking) come from.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A CampVine camp organizer should be able to edit their own camps but not someone else's — that's a textbook Policy (<code>CampPolicy::update($user, $camp)</code> checking <code>$camp->owner_id === $user->id</code>), enforced automatically via <code>$this->authorize('update', $camp)</code> in the controller or a policy-aware form request, rather than manually scattering ownership checks through the codebase.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Checking authorization only in the frontend/UI and trusting the client — always enforce it server-side regardless of what the UI hides.</li>
+          <li>Using a Gate closure for resource-specific permission checks that really belong in a Policy, scattering ownership logic across route files instead of a testable class.</li>
+          <li>Forgetting middleware order matters — auth middleware must run before an authorization check that depends on the authenticated user being resolved.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I keep authentication and authorization strictly separate in my head: authentication is middleware's job — confirming who's making the request, via Sanctum tokens for an API — and authorization is a Policy's job once we know who they are. Anything tied to a specific model — can this user edit this specific camp — goes in a Policy method, so the ownership logic lives in one testable place instead of being duplicated across controllers. Gates I reserve for broader, non-model-specific checks, like whether a user's role permits access to an admin area at all."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Walk through what happens, in order, from a request hitting a protected route to reaching the controller.</li>
+          <li>When would you choose a Gate over a Policy?</li>
+          <li>How does Sanctum's token auth differ from a traditional session-based auth flow?</li>
+        </ul>
+
+        <pre><code><span class="kw">class</span> <span class="fn">CampPolicy</span> {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">update</span>(User $user, Camp $camp): <span class="kw">bool</span> {
+    <span class="kw">return</span> $user->id === $camp->owner_id;
+  }
+}
+
+<span class="cmt">// In the controller:</span>
+<span class="kw">public</span> <span class="kw">function</span> <span class="fn">update</span>(Request $request, Camp $camp) {
+  <span class="kw">$this</span>->authorize(<span class="str">'update'</span>, $camp); <span class="cmt">// throws 403 automatically if it fails</span>
+  <span class="cmt">// ... proceed</span>
+}
+
+<span class="cmt">// Middleware pipeline, applied in routes/api.php:</span>
+Route::middleware([<span class="str">'auth:sanctum'</span>, <span class="str">'throttle:60,1'</span>])->group(<span class="kw">function</span>() {
+  Route::put(<span class="str">'/camps/{camp}'</span>, [CampController::<span class="kw">class</span>, <span class="str">'update'</span>]);
+});</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always enforce authorization server-side, never rely on hiding UI elements as the only safeguard.</li>
+          <li>Use Policies for anything resource-scoped; keep Gates for coarse, app-wide checks.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 7 ============ -->
+      <section class="topic" data-topic="7" id="t7">
+        <div class="topic-head">
+          <h2><span class="tagnum">07.</span> Queues, Jobs, Events, Listeners &amp; Observers</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="7">☆</button>
+            <button class="check-btn" data-ck="7">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>Job</strong> is a unit of work you can dispatch either synchronously or, more usefully, onto a <strong>queue</strong> to be processed asynchronously by a separate worker process — used for anything slow or unreliable that shouldn't block the HTTP response (sending emails, calling a third-party API, generating a report). Failed jobs can be automatically retried with backoff, and Laravel tracks failures in a <code>failed_jobs</code> table for inspection. <strong>Events</strong> and <strong>Listeners</strong> implement the Observer pattern at the framework level — you fire an event (<code>BookingCreated</code>) when something happens, and any number of decoupled listeners react to it (send a confirmation email, update analytics, notify Slack) without the original code knowing or caring who's listening. <strong>Model Observers</strong> are a specialized version scoped to Eloquent model lifecycle events (<code>creating</code>, <code>updated</code>, <code>deleted</code>).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is the mechanism behind reliable, scalable backend systems — and directly the pattern behind the retry logic you built for the Yardstik webhook integration. Interviewers use it to test whether you understand decoupling side effects from core business logic and handling failure gracefully instead of letting a slow third-party call block a request.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Your background-check webhook handling is a canonical use case: the webhook receiver dispatches a job to process the payload asynchronously with retry/backoff configured, so a slow or temporarily-down third party never ties up a web request — and a failed attempt gets requeued automatically instead of silently dropping data.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Doing slow work (email sending, external API calls) synchronously inside a controller, making the user wait and risking a timeout.</li>
+          <li>Not making jobs idempotent — if a job runs twice (which retries guarantee will eventually happen), running it twice should be safe, not double-charge a customer or send a duplicate notification.</li>
+          <li>Overusing Observers for logic that has nothing to do with the model's own lifecycle, making side effects hard to trace — sometimes an explicit event/listener or a service call is clearer than a "magic" observer hook.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Anything that's slow, unreliable, or talks to a third party goes on a queue rather than running inline in the request — that's exactly the pattern I used for a background-check webhook integration: the endpoint just validates the payload and dispatches a job, so a slow provider never blocks the response, and Laravel's retry/backoff config handles transient failures automatically. The one non-negotiable is idempotency — since retries mean a job can run more than once, I design the job so running it twice produces the same end state, usually by checking a status/idempotency key before doing the mutating part."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How do you make a job idempotent? Give a concrete example from a payment or webhook context.</li>
+          <li>What's the difference between an Event/Listener pair and just calling a method directly?</li>
+          <li>How would you handle a job that keeps failing after all its retries are exhausted?</li>
+        </ul>
+
+        <pre><code><span class="kw">class</span> <span class="fn">ProcessBackgroundCheck</span> <span class="kw">implements</span> ShouldQueue {
+  <span class="kw">public</span> <span class="kw">int</span> $tries = <span class="num">3</span>;
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">backoff</span>(): <span class="kw">array</span> { <span class="kw">return</span> [<span class="num">10</span>, <span class="num">60</span>, <span class="num">300</span>]; } <span class="cmt">// seconds</span>
+
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">handle</span>(): <span class="kw">void</span> {
+    <span class="cmt">// idempotency guard — safe to run more than once</span>
+    <span class="kw">if</span> ($this->check->status === <span class="str">'completed'</span>) <span class="kw">return</span>;
+    $result = Yardstik::verify($this->check);
+    $this->check->update([<span class="str">'status'</span> => $result->status]);
+    <span class="fn">event</span>(<span class="kw">new</span> BackgroundCheckCompleted($this->check));
+  }
+}
+
+<span class="cmt">// Decoupled listener reacting to the event — knows nothing about the job:</span>
+<span class="kw">class</span> <span class="fn">NotifyOrganizer</span> {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">handle</span>(BackgroundCheckCompleted $event): <span class="kw">void</span> {
+    Notification::send($event->check->organizer, <span class="kw">new</span> CheckCompletedNotification());
+  }
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always design queued jobs to be idempotent — retries are not an edge case, they're an expected part of the system.</li>
+          <li>Use events/listeners to decouple side effects (notifications, analytics) from the core action that triggered them.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 8 ============ -->
+      <section class="topic" data-topic="8" id="t8">
+        <div class="topic-head">
+          <h2><span class="tagnum">08.</span> Repository/Service Pattern &amp; DDD in Laravel</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="8">☆</button>
+            <button class="check-btn" data-ck="8">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Laravel's default structure encourages "fat models, thin controllers," but at real scale that pushes too much responsibility into Eloquent models and controllers. The <strong>Repository pattern</strong> abstracts data access behind an interface, so business logic depends on <em>what</em> data operations are possible, not <em>how</em> they're implemented (Eloquent, a third-party API, a cache layer). The <strong>Service layer</strong> holds the actual business logic/use cases, orchestrating one or more repositories, keeping controllers as thin coordination layers that just handle HTTP concerns (validation, response shaping). <strong>Domain-Driven Design (DDD)</strong> goes further: organizing code around <em>bounded contexts</em> (Booking, Payment, Camp) rather than technical layers, with each context owning its own models, services, and repositories — reducing the "everything touches everything" coupling that plagues large Laravel apps grown organically.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is exactly the kind of architectural judgment senior/staff-level interviews probe for — anyone can build a CRUD app with Eloquent directly in controllers, but demonstrating you know <em>when</em> that extra abstraction earns its cost (and when it's overkill) is a strong senior signal.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>This is literally your CampVine refactor — you were the sole developer applying Service-Repository and domain-driven design to move a legacy structure toward maintainable bounded contexts. That's a strong, specific story: what the code looked like before, what problems that caused (untestable logic tightly coupled to Eloquent, business rules duplicated across controllers), and the concrete architectural decisions you made to fix it.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Applying Repository/DDD to a small CRUD app where it adds indirection without earning its cost — this pattern is a trade-off, not a default.</li>
+          <li>Building a "repository" that just wraps Eloquent 1:1 with no real abstraction benefit — a repository interface only pays off if you'd genuinely swap or fake the implementation.</li>
+          <li>Letting services reach into other domains' repositories directly instead of going through that domain's own service/public interface, recreating the same coupling DDD was meant to remove.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I led exactly this kind of refactor on a camp management platform — the original codebase had business logic scattered across fat Eloquent models and controllers, which made it hard to test and hard to reason about ownership of rules. I introduced a Service-Repository split: repositories behind interfaces for data access, services holding the actual use-case logic, and started organizing around bounded contexts like Booking and Payment rather than technical layers. The honest trade-off is added indirection, so I didn't apply it uniformly — simple CRUD-only areas stayed lean, and the pattern went where the business logic was actually complex enough to justify it."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>When is the Repository pattern NOT worth the extra abstraction?</li>
+          <li>How do you decide where a bounded context boundary should sit?</li>
+          <li>Walk me through the CampVine refactor — what did the code look like before and after?</li>
+        </ul>
+
+        <pre><code><span class="kw">interface</span> <span class="fn">CampRepositoryInterface</span> {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">findAvailable</span>(<span class="kw">array</span> $filters): Collection;
+}
+
+<span class="kw">class</span> <span class="fn">EloquentCampRepository</span> <span class="kw">implements</span> CampRepositoryInterface {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">findAvailable</span>(<span class="kw">array</span> $filters): Collection {
+    <span class="kw">return</span> Camp::query()->where(<span class="str">'status'</span>, <span class="str">'active'</span>)->when(
+      $filters[<span class="str">'date'</span>] ?? <span class="kw">null</span>,
+      <span class="kw">fn</span>($q, $date) => $q->whereDoesntHave(<span class="str">'bookings'</span>, <span class="kw">fn</span>($b) => $b->whereDate(<span class="str">'date'</span>, $date))
+    )->get();
+  }
+}
+
+<span class="cmt">// Service holds the use-case logic, orchestrates the repository:</span>
+<span class="kw">class</span> <span class="fn">CampSearchService</span> {
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">__construct</span>(<span class="kw">private</span> CampRepositoryInterface $camps) {}
+  <span class="kw">public</span> <span class="kw">function</span> <span class="fn">search</span>(<span class="kw">array</span> $filters): Collection {
+    <span class="kw">return</span> <span class="kw">$this</span>->camps->findAvailable($filters); <span class="cmt">// + business rules, pricing, etc.</span>
+  }
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Reserve the extra abstraction for genuinely complex domains — apply it selectively, not as a blanket rule across a whole app.</li>
+          <li>Let each bounded context expose a clear public service interface; other contexts should go through that, not reach into its internals directly.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 9 ============ -->
+      <section class="topic" data-topic="9" id="t9">
+        <div class="topic-head">
+          <h2><span class="tagnum">09.</span> Caching, Redis &amp; the N+1 Query Problem</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="9">☆</button>
+            <button class="check-btn" data-ck="9">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> The <strong>N+1 problem</strong> happens when code fetches N parent records, then loops through them triggering one additional query per record to fetch related data — turning what should be 2 queries into N+1. Eloquent's <strong>eager loading</strong> (<code>with()</code>) fixes this by fetching all related data in a second, batched query instead of one per row. <strong>Caching</strong> (typically Redis in production Laravel apps) stores expensive-to-compute or frequently-read data in memory to avoid repeated database hits — Laravel's cache API supports simple key-value storage, tagged caching for grouped invalidation, and the <code>remember()</code> pattern (fetch from cache, or compute-and-store if missing). Redis specifically is also commonly used beyond caching — for queues, rate limiting, and session storage — because of its speed and native support for structures like sorted sets and hashes.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>The N+1 problem is the single most common real-world Laravel performance bug, and almost every experienced Laravel developer has a war story about finding and fixing one — it's a near-guaranteed practical question in any Laravel interview.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A camp listing page showing each camp's average rating and amenity count is a textbook N+1 trap if written naively — loading 50 camps then looping to call <code>$camp->reviews->avg('rating')</code> per camp fires 50+ extra queries; eager loading with a single aggregated query (or Eloquent's <code>withAvg</code>/<code>withCount</code>) collapses that to one or two queries total, and caching the result further removes repeated load on high-traffic pages.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Not noticing an N+1 exists because it's invisible in normal testing with small datasets — it only becomes obvious (and expensive) at production scale, which is exactly why query logging/profiling in development matters.</li>
+          <li>Caching data that changes frequently without a solid invalidation strategy, serving stale data — cache invalidation, notoriously, is one of the two hard problems in computer science.</li>
+          <li>Caching at too granular or too broad a level — caching an entire page when only one expensive sub-query needed it, or caching per-row when a single aggregated cache key would do.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I catch N+1s by watching query counts in local development — Laravel Debugbar or just logging query count per request — since it's invisible with a handful of test rows but devastating at scale. The fix is almost always eager loading with with() or, for aggregates specifically, withCount/withAvg so the aggregate is computed in SQL rather than pulled into PHP. For caching, I reach for Redis with remember() for genuinely expensive or frequently-read, infrequently-changing data, and I'm deliberate about invalidation — usually clearing the specific cache key on the write path (e.g. when a review is added) rather than relying on a blanket TTL alone."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How would you detect an N+1 problem in a codebase you just inherited?</li>
+          <li>Walk through a caching strategy for a frequently-read, rarely-updated resource.</li>
+          <li>What's cache stampede, and how would you prevent it?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// N+1: fires 1 query for camps + 1 extra query PER camp</span>
+$camps = Camp::all();
+<span class="kw">foreach</span> ($camps <span class="kw">as</span> $camp) { $camp->reviews->avg(<span class="str">'rating'</span>); }
+
+<span class="cmt">// Fixed: one aggregated query via withAvg, zero extra queries in the loop</span>
+$camps = Camp::withAvg(<span class="str">'reviews'</span>, <span class="str">'rating'</span>)->get();
+<span class="kw">foreach</span> ($camps <span class="kw">as</span> $camp) { $camp->reviews_avg_rating; }
+
+<span class="cmt">// Cache with explicit invalidation on the write path</span>
+$rating = Cache::remember(<span class="str">"camp.{$camp->id}.rating"</span>, <span class="num">3600</span>, <span class="kw">fn</span>() => $camp->reviews()->avg(<span class="str">'rating'</span>));
+<span class="cmt">// ...on new review created:</span>
+Cache::forget(<span class="str">"camp.{$camp->id}.rating"</span>);</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Enable query logging in local/staging to catch N+1s before they hit production.</li>
+          <li>Invalidate cache explicitly on the relevant write path rather than relying solely on a TTL, whenever staleness has real user-facing impact.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 10 ============ -->
+      <section class="topic" data-topic="10" id="t10">
+        <div class="topic-head">
+          <h2><span class="tagnum">10.</span> Testing, Artisan &amp; Deployment Basics</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="10">☆</button>
+            <button class="check-btn" data-ck="10">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Laravel testing (built on PHPUnit, or Pest as a popular alternative syntax) splits into <strong>unit tests</strong> (a single class/method in isolation, dependencies mocked) and <strong>feature tests</strong> (a full HTTP request through the framework, hitting real routes/middleware, often against a test database via <code>RefreshDatabase</code>). <strong>Artisan</strong> is Laravel's CLI — beyond the built-in commands (<code>migrate</code>, <code>queue:work</code>, <code>make:model</code>), you can define custom commands for operational tasks like data backfills or scheduled reports. <strong>Deployment</strong> basics for a Laravel app include running migrations safely, caching config/routes/views for production (<code>config:cache</code>, <code>route:cache</code>), queue worker process management (via Supervisor or similar), and zero-downtime deploy strategies.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Testing discipline and deployment awareness separate "can write features" from "can be trusted to ship and operate a production system" — especially relevant for a role where you might be the sole or primary backend developer, as you were at Zujax, with no one else to catch regressions.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>As sole developer on CampVine, feature tests around booking/payment flows are your safety net for refactoring with confidence — the DDD refactor you did is only safe to do incrementally if a test suite catches regressions immediately, rather than relying on manual QA of every code path after every change.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Writing tests that hit real third-party services (payment gateways, external APIs) instead of mocking/faking them — slow, flaky, and can have real side effects (like actually charging a card) in CI.</li>
+          <li>Running <code>php artisan migrate</code> directly against production without a rollback plan or a maintenance window for anything non-trivial.</li>
+          <li>Forgetting to run <code>config:cache</code>/<code>route:cache</code> in production, or worse, forgetting to clear them after a deploy that changes <code>.env</code> values — stale cached config is a classic "works locally, broken in prod" bug.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I write feature tests around the critical paths — booking creation, payment flow, webhook handling — since those are exactly what a refactor risks breaking silently, and I mock third-party calls with Laravel's HTTP fake or a fake implementation of the relevant interface rather than hitting real external services in CI. For deployment, the details that actually bite people are caching config/routes for production performance and remembering to clear that cache after any .env change, plus making sure queue workers get restarted after a deploy since they hold old code in memory until then."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How do you test a job/controller that calls a third-party API without actually hitting it?</li>
+          <li>What's the risk of caching config in production, and when would you need to remember to clear it?</li>
+          <li>Why do queue workers need to be restarted after deploying new code?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Feature test — real HTTP request through the framework, gateway faked</span>
+<span class="kw">public</span> <span class="kw">function</span> <span class="fn">test_booking_charges_the_correct_amount</span>(): <span class="kw">void</span>
+{
+  Http::fake([<span class="str">'stripe.com/*'</span> => Http::response([<span class="str">'status'</span> => <span class="str">'succeeded'</span>], <span class="num">200</span>)]);
+
+  $response = $this->actingAs($user)->postJson(<span class="str">'/bookings'</span>, [
+    <span class="str">'camp_id'</span> => $camp->id, <span class="str">'guests'</span> => <span class="num">2</span>,
+  ]);
+
+  $response->assertStatus(<span class="num">201</span>);
+  $this->assertDatabaseHas(<span class="str">'bookings'</span>, [<span class="str">'camp_id'</span> => $camp->id, <span class="str">'amount'</span> => <span class="num">400</span>]);
+}
+
+<span class="cmt">// Production deploy essentials:</span>
+<span class="cmt">// php artisan migrate --force
+// php artisan config:cache && php artisan route:cache
+// php artisan queue:restart   -- picks up new code for workers</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Fake/mock all outbound third-party calls in tests — never let CI hit a real payment gateway or external API.</li>
+          <li>Always run <code>queue:restart</code> after deploying, since long-running workers keep old code loaded in memory.</li>
+        </ul>
+      </section>
+
+      <!-- ============ RAPID FIRE ============ -->
+      <section class="topic" id="rapidfire">
+        <div class="topic-head"><h2><span class="tagnum">⚡</span> Rapid-Fire Q&amp;A — PHP &amp; Laravel</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">Click any question to reveal a tight, interview-ready answer.</p>
+        <div class="rapid-grid" id="rapid-grid"></div>
+      </section>
+
+      <!-- ============ CHEAT SHEET ============ -->
+      <section class="topic" id="cheatsheet-section">
+        <div class="topic-head"><h2><span class="tagnum">📋</span> Printable Revision Cheat Sheet</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">One line per concept — for the 10 minutes before you walk in.</p>
+        <div class="cheatsheet">
+          <table>
+            <tr><th>Concept</th><th>One-line answer</th></tr>
+            <tr><td>Interface vs Abstract</td><td>Interface: contract only, multiple allowed. Abstract: real code + state, single inheritance.</td></tr>
+            <tr><td>Trait</td><td>Reusable method block pasted into unrelated classes — behavior, not identity.</td></tr>
+            <tr><td>PSR-4</td><td>Composer autoload standard mapping namespace prefix → folder path.</td></tr>
+            <tr><td>Service Container</td><td>Resolves class dependencies via reflection; bindings needed for interfaces.</td></tr>
+            <tr><td>bind() vs singleton()</td><td>bind: new instance every resolve. singleton: one shared instance for app lifetime.</td></tr>
+            <tr><td>Facade</td><td>Static-looking call that forwards via __callStatic to a container-resolved object.</td></tr>
+            <tr><td>register() vs boot()</td><td>register: only bindings. boot: setup that needs other providers already registered.</td></tr>
+            <tr><td>Gate vs Policy</td><td>Gate: closure, broad checks. Policy: class scoped to a specific model's actions.</td></tr>
+            <tr><td>N+1 problem</td><td>1 query for parents + 1 per row for relations; fix with eager loading (with()).</td></tr>
+            <tr><td>withCount/withAvg</td><td>Computes aggregates in SQL instead of pulling rows into PHP to aggregate.</td></tr>
+            <tr><td>Job idempotency</td><td>Running a queued job twice (due to retries) must produce the same end state.</td></tr>
+            <tr><td>Event vs direct call</td><td>Event/listener decouples side effects; caller doesn't know who's listening.</td></tr>
+            <tr><td>Repository pattern</td><td>Abstracts data access behind an interface — swap/fake implementation freely.</td></tr>
+            <tr><td>Service layer</td><td>Holds business/use-case logic; keeps controllers thin (HTTP concerns only).</td></tr>
+            <tr><td>Sanctum</td><td>Lightweight token/cookie auth for SPAs and APIs.</td></tr>
+            <tr><td>composer.lock</td><td>Pins exact resolved dependency versions for reproducible installs.</td></tr>
+            <tr><td>Feature vs Unit test</td><td>Feature: full HTTP request through the framework. Unit: single class in isolation.</td></tr>
+            <tr><td>config:cache risk</td><td>Must be cleared/rebuilt after any .env change or stale values persist in prod.</td></tr>
+            <tr><td>queue:restart</td><td>Required after deploy — long-running workers hold old code in memory otherwise.</td></tr>
+            <tr><td>Redis common uses</td><td>Cache, queues, rate limiting, session storage — beyond just key-value caching.</td></tr>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="part-footer">
+      <div class="next"><b>Next up — Chapter 5</b>Database &amp; SQL: indexes, joins, transactions, normalization, query optimization</div>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">Part 4 of 7 · PHP &amp; Laravel · complete</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const typedEl = document.getElementById('typed');
+const typedText = "$ php artisan interview:prep --chapter=4 --stack=Laravel,PHP";
+let ti = 0;
+function typeStep(){
+  if(ti <= typedText.length){ typedEl.textContent = typedText.slice(0, ti); ti++; setTimeout(typeStep, 18); }
+}
+typeStep();
+
+const topics = [
+  {id:1, title:'PHP OOP Core: Classes, Interfaces, Traits'},
+  {id:2, title:'Composer, Autoloading & PSR-4'},
+  {id:3, title:'Service Container & Dependency Injection'},
+  {id:4, title:'Service Providers & Facades'},
+  {id:5, title:'Eloquent: Relationships & Query Builder'},
+  {id:6, title:'Middleware, Sanctum, Policies & Gates'},
+  {id:7, title:'Queues, Jobs, Events & Observers'},
+  {id:8, title:'Repository/Service Pattern & DDD'},
+  {id:9, title:'Caching, Redis & N+1 Problem'},
+  {id:10, title:'Testing, Artisan & Deployment'},
+];
+
+const tocEl = document.getElementById('toc');
+topics.forEach(t=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#t${t.id}" data-toc="${t.id}">${String(t.id).padStart(2,'0')}. ${t.title}</a>`;
+  tocEl.appendChild(li);
+});
+
+const LS_CHECK = 'ip_ch4_checked';
+const LS_BOOKMARK = 'ip_ch4_bookmarks';
+const getChecked = () => JSON.parse(localStorage.getItem(LS_CHECK) || '[]');
+const setChecked = (arr) => localStorage.setItem(LS_CHECK, JSON.stringify(arr));
+const getBookmarks = () => JSON.parse(localStorage.getItem(LS_BOOKMARK) || '[]');
+const setBookmarks = (arr) => localStorage.setItem(LS_BOOKMARK, JSON.stringify(arr));
+
+function refreshProgress(){
+  const checked = getChecked();
+  document.getElementById('progress-text').textContent = `${checked.length} / ${topics.length}`;
+  document.getElementById('progress-fill').style.width = (checked.length/topics.length*100) + '%';
+  document.querySelectorAll('.check-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-ck');
+    btn.classList.toggle('active', checked.includes(id));
+  });
+  document.querySelectorAll('.toc a[data-toc]').forEach(a=>{
+    a.classList.toggle('done', checked.includes(a.getAttribute('data-toc')));
+  });
+}
+
+function refreshBookmarks(){
+  const bm = getBookmarks();
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-bm');
+    btn.classList.toggle('active', bm.includes(id));
+    btn.textContent = bm.includes(id) ? '★' : '☆';
+  });
+  const list = document.getElementById('bookmark-list');
+  if(bm.length === 0){
+    list.innerHTML = '<li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li>';
+    return;
+  }
+  list.innerHTML = bm.map(id=>{
+    const t = topics.find(t=>String(t.id)===String(id));
+    return t ? `<li><a href="#t${t.id}">★ ${t.title}</a></li>` : '';
+  }).join('');
+}
+
+document.querySelectorAll('.check-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-ck');
+    let checked = getChecked();
+    checked = checked.includes(id) ? checked.filter(x=>x!==id) : [...checked, id];
+    setChecked(checked);
+    refreshProgress();
+  });
+});
+
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-bm');
+    let bm = getBookmarks();
+    bm = bm.includes(id) ? bm.filter(x=>x!==id) : [...bm, id];
+    setBookmarks(bm);
+    refreshBookmarks();
+  });
+});
+
+refreshProgress();
+refreshBookmarks();
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const codeText = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(codeText).then(()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(()=> btn.textContent = orig, 1200);
+    });
+  });
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('section.topic[data-topic]').forEach(sec=>{
+    const text = sec.innerText.toLowerCase();
+    sec.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+
+const rapidFire = [
+  ["What's the difference between == and === in PHP?", "== compares with type coercion (loose); === compares value and type with no coercion. Always prefer === to avoid surprises like '0' == false being true."],
+  ["What is a magic method? Name three.", "Methods PHP calls automatically on certain triggers instead of being called explicitly: __construct (instantiation), __get/__set (accessing undefined properties), __call (calling undefined methods), __toString (casting an object to a string)."],
+  ["What's the difference between require and require_once?", "require_once checks if the file was already included and skips it if so, preventing redeclaration errors; require always includes it, even if already loaded."],
+  ["What is dependency injection, in one line?", "Supplying a class's dependencies from the outside (usually via constructor) instead of the class creating them itself internally."],
+  ["What's the difference between public, protected, and private?", "public: accessible anywhere. protected: accessible within the class and subclasses. private: accessible only within the declaring class itself."],
+  ["What does the 'final' keyword do on a class or method?", "Prevents the class from being extended, or the method from being overridden in a subclass."],
+  ["What is method chaining and how is it implemented?", "Calling multiple methods in sequence on the same object (fluent interface) — implemented by having each method return $this."],
+  ["What's the difference between artisan migrate and migrate:fresh?", "migrate runs pending migrations only; migrate:fresh drops all tables first, then re-runs every migration from scratch — destructive, never for production."],
+  ["What is a Form Request in Laravel?", "A dedicated class for validation and authorization logic, injected into a controller method instead of validating inline, keeping controllers thin."],
+  ["What does Eloquent's $fillable vs $guarded do?", "$fillable is an allowlist of mass-assignable fields; $guarded is a denylist. Both protect against mass-assignment vulnerabilities — use one, not both."],
+  ["What is a database transaction, and how do you use one in Laravel?", "A set of operations that all succeed or all roll back together, wrapped with DB::transaction(fn () => { ... }) — critical for multi-step writes like a booking + payment record."],
+  ["What's the difference between soft deletes and hard deletes?", "Soft delete (SoftDeletes trait) sets a deleted_at timestamp and excludes the row from normal queries without removing it; hard delete removes the row permanently."],
+  ["What does php artisan tinker do?", "Opens an interactive REPL with the full application booted, letting you run Eloquent queries and test code live against real app state."],
+  ["What is a Laravel Resource (API Resource)?", "A dedicated class that transforms a model (or collection) into a controlled, consistent JSON structure for API responses, decoupling the response shape from the raw database columns."],
+  ["What's the difference between a Job and an Event?", "A Job represents one unit of async work meant to be processed, typically once. An Event represents 'something happened' and can trigger multiple independent Listeners."],
+  ["How does Laravel's rate limiting middleware work?", "throttle:60,1 limits a client to 60 requests per 1 minute, tracked per IP/user via the cache, returning a 429 response once exceeded."],
+  ["What is the difference between hasOne and belongsTo?", "Both describe a one-to-one relationship but from opposite sides — hasOne is on the table holding the 'parent' side, belongsTo is on the table holding the foreign key."],
+  ["What does php artisan optimize do in older Laravel versions / what replaced it?", "It historically cached config/routes/views together; modern Laravel favors running config:cache, route:cache, and view:cache separately for more granular control."],
+  ["What is method overloading in PHP, and does PHP support it natively?", "PHP doesn't support true method overloading (same name, different signatures) like Java/C#; __call and __callStatic magic methods can simulate similar dynamic dispatch behavior."],
+  ["What's the difference between abstract methods and interface methods?", "Both declare a signature without implementation, but abstract methods live in a class that can also have real implemented methods and state; interfaces are pure contracts with no implementation at all."],
+  ["What does array_map vs array_filter do?", "array_map transforms every element and returns an array of the same length; array_filter removes elements that don't pass a callback, returning a possibly-shorter array."],
+  ["What is Laravel's Sanctum used for vs Passport?", "Sanctum: lightweight token/cookie auth for SPAs, mobile apps, simple APIs. Passport: full OAuth2 server implementation for more complex third-party API auth scenarios."],
+  ["What is eager loading vs lazy loading in Eloquent?", "Eager loading (with()) fetches relations upfront in a batched query; lazy loading fetches a relation only when it's first accessed, which is what causes the N+1 problem if done in a loop."],
+  ["What's the purpose of database seeders and factories?", "Factories define how to generate fake model instances (for tests/dev data); seeders use factories (or fixed data) to populate the database, typically via php artisan db:seed."],
+  ["What does the 'protected $casts' array do on an Eloquent model?", "Automatically converts database column values to/from PHP types on access — e.g. a JSON column to an array, or a datetime string to a Carbon instance."],
+];
+const grid = document.getElementById('rapid-grid');
+rapidFire.forEach(([q,a])=>{
+  const d = document.createElement('details');
+  d.className = 'qa';
+  d.innerHTML = `<summary>${q}</summary><div class="ans">${a}</div>`;
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>
