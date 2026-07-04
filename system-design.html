@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep :: Part 6 — System Design</title>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --surface:#11151c;
+    --surface-alt:#171c26;
+    --border:#232936;
+    --text:#d7dce3;
+    --text-dim:#8b93a1;
+    --text-faint:#5c6472;
+    --accent:#e3b341;
+    --accent-dim:#8a6d2a;
+    --cyan:#5fd3bc;
+    --red:#e8735c;
+    --green:#6fcf97;
+    --mono: 'SF Mono', 'Fira Code', Consolas, Menlo, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.65; }
+  ::selection{background:var(--accent); color:#161616;}
+  a{color:var(--cyan);}
+  code, pre{font-family:var(--mono);}
+  code{background:var(--surface-alt); padding:2px 6px; border-radius:4px; color:var(--accent); font-size:0.87em;}
+
+  #app{display:flex; min-height:100vh;}
+  #sidebar{
+    width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+    position:fixed; top:0; left:0; bottom:0; overflow-y:auto; padding:20px 16px 40px;
+  }
+  #main{margin-left:300px; flex:1; min-width:0; padding:0;}
+  @media (max-width: 900px){
+    #sidebar{position:relative; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);}
+    #main{margin-left:0;}
+    #app{flex-direction:column;}
+  }
+
+  .brand{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:0.5px; margin-bottom:4px;}
+  .brand-title{font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:18px; font-weight:600;}
+  #search{
+    width:100%; padding:9px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:6px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+  .search-hint{font-size:11px; color:var(--text-faint); margin-bottom:18px; font-family:var(--mono);}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--bg); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s;}
+
+  .chapters{list-style:none; padding:0; margin:0 0 20px;}
+  .chapters li{margin-bottom:2px;}
+  .chapters a{
+    display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text-dim);
+    font-size:13px; padding:7px 8px; border-radius:var(--radius);
+  }
+  .chapters a.active, .chapters li.current a{color:var(--accent); background:var(--surface-alt);}
+  .chapters .chnum{font-family:var(--mono); color:var(--text-faint); font-size:11px; width:18px; flex-shrink:0;}
+  .chapters li.current .chnum{color:var(--accent);}
+  .chapters .soon{font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-left:auto;}
+  .chapters .done-tag{font-size:10px; color:var(--green); font-family:var(--mono); margin-left:auto;}
+
+  .toc{list-style:none; padding:0; margin:0;}
+  .toc-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .toc li a{
+    display:block; text-decoration:none; color:var(--text-dim); font-size:12.5px; padding:5px 8px 5px 20px;
+    border-left:2px solid transparent; border-radius:0 4px 4px 0;
+  }
+  .toc li a:hover{color:var(--text);}
+  .toc li a.done{color:var(--green);}
+  .toc li a.done::before{content:"✓ "; color:var(--green);}
+
+  .hero{
+    padding:56px 48px 40px; border-bottom:1px solid var(--border);
+    background: radial-gradient(600px 200px at 85% -20%, rgba(227,179,65,0.08), transparent);
+  }
+  .hero-eyebrow{font-family:var(--mono); color:var(--text-faint); font-size:12px; margin-bottom:10px;}
+  #typed{font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:18px; min-height:18px;}
+  #typed::after{content:"█"; animation:blink 1s step-start infinite; color:var(--accent);}
+  @keyframes blink{50%{opacity:0;}}
+  .hero h1{font-family:var(--mono); font-size:clamp(28px,4vw,42px); margin:0 0 14px; color:#fff; line-height:1.25;}
+  .hero p{color:var(--text-dim); max-width:680px; font-size:15px;}
+  .hero-stats{display:flex; gap:28px; margin-top:26px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono);}
+  .stat b{color:var(--accent); font-size:20px; display:block;}
+  .stat span{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .content{padding:8px 48px 80px; max-width:920px;}
+  section.topic{border-bottom:1px solid var(--border); padding:36px 0;}
+  section.topic:first-of-type{padding-top:28px;}
+
+  .topic-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px;}
+  .topic-head h2{font-family:var(--mono); font-size:22px; color:#fff; margin:0; display:flex; align-items:center; gap:10px;}
+  .topic-head h2 .tagnum{color:var(--accent);}
+  .topic-controls{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .diff{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;}
+  .diff.mid{color:var(--accent); border-color:var(--accent-dim);}
+  .diff.senior{color:var(--red); border-color:#5a3229;}
+  .star-btn, .check-btn{
+    background:none; border:1px solid var(--border); color:var(--text-faint); cursor:pointer;
+    border-radius:5px; padding:5px 8px; font-size:14px; line-height:1;
+  }
+  .star-btn.active{color:var(--accent); border-color:var(--accent-dim);}
+  .check-btn.active{color:var(--green); border-color:#2c5a41;}
+
+  .subhead{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin:22px 0 8px;}
+  .subhead.mistakes{color:var(--red);}
+  .subhead.best{color:var(--green);}
+  .topic p{margin:0 0 10px; color:var(--text);}
+  .topic ul{margin:6px 0 10px; padding-left:20px;}
+  .topic li{margin-bottom:5px; color:var(--text);}
+
+  pre{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; font-size:12.8px; position:relative; margin:10px 0;
+    white-space:pre;
+  }
+  pre code{background:none; padding:0; color:var(--text);}
+  .kw{color:#c586c0;} .str{color:var(--green);} .cmt{color:var(--text-faint); font-style:italic;} .fn{color:#5fb3d3;} .num{color:#e3b341;} .var{color:#9cdcfe;}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-dim); font-family:var(--mono); font-size:10.5px; padding:4px 8px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);}
+
+  .callout{border-left:3px solid var(--accent); background:var(--surface); padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim);}
+  .followups{list-style:none; padding:0; margin:8px 0;}
+  .followups li{ font-size:13.5px; color:var(--text-dim); padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border); }
+  .followups li::before{content:"↳"; position:absolute; left:0; color:var(--text-faint);}
+  .followups li:last-child{border-bottom:none;}
+
+  .rapid-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 32px;}
+  @media (max-width:700px){.rapid-grid{grid-template-columns:1fr;}}
+  details.qa{border-bottom:1px solid var(--border); padding:10px 0;}
+  details.qa summary{cursor:pointer; color:var(--text); font-size:13.5px; list-style:none; display:flex; gap:8px;}
+  details.qa summary::before{content:"▸"; color:var(--accent); flex-shrink:0;}
+  details.qa[open] summary::before{content:"▾";}
+  details.qa summary::-webkit-details-marker{display:none;}
+  details.qa .ans{padding:8px 0 0 18px; color:var(--text-dim); font-size:13px;}
+
+  .part-footer{
+    padding:50px 48px; border-top:1px solid var(--border); background:var(--surface);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .part-footer .next{font-family:var(--mono); color:var(--text-dim); font-size:13px;}
+  .part-footer .next b{color:var(--accent); display:block; font-size:15px; margin-bottom:4px;}
+  .kbd{font-family:var(--mono); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--text-dim);}
+
+  .cheatsheet{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:22px 26px; margin:20px 0;}
+  .cheatsheet table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cheatsheet th{text-align:left; font-family:var(--mono); color:var(--text-faint); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);}
+  .cheatsheet td{padding:7px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); vertical-align:top;}
+  .cheatsheet td:first-child{color:var(--accent); font-family:var(--mono); white-space:nowrap;}
+
+  .framework-box{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin:14px 0;}
+  .framework-box ol{margin:0; padding-left:20px;}
+  .framework-box li{margin-bottom:10px; color:var(--text);}
+  .framework-box li b{color:var(--accent); font-family:var(--mono); font-size:12.5px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:2px;}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="brand">$ interview-prep --guide</div>
+    <div class="brand-title">Full-Stack Interview Handbook</div>
+
+    <input type="text" id="search" placeholder="/ search this chapter…" autocomplete="off">
+    <div class="search-hint">press <span class="kbd">/</span> to focus · <span class="kbd">esc</span> to clear</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>CH.6 PROGRESS</span><span id="progress-text">0 / 10</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <ul class="chapters">
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">01</span> JavaScript + DOM <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">02</span> React + Next.js <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">03</span> Node.js + Backend Design <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">04</span> PHP + Laravel <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">05</span> Database + SQL <span class="done-tag">done</span></a></li>
+      <li class="current"><a href="#top"><span class="chnum">06</span> System Design</a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">07</span> HR + Project Stories <span class="soon">soon</span></a></li>
+    </ul>
+
+    <div class="toc-title">On this page</div>
+    <ul class="toc" id="toc"></ul>
+
+    <div class="toc-title">Bookmarks</div>
+    <ul class="toc" id="bookmark-list"><li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li></ul>
+  </aside>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="hero-eyebrow">CHAPTER 6 OF 7 · SYSTEM-LEVEL ARCHITECTURE</div>
+      <div id="typed"></div>
+      <h1>System Design,<br>from the interview framework to full case-study walkthroughs</h1>
+      <p>Ten topics — how to approach any system design question, load balancers &amp; reverse proxies, scaling &amp; statelessness, CAP theorem, replication &amp; sharding, caching &amp; CDN architecture, message queues &amp; event-driven design, then three full case studies: a URL shortener, a chat application, and a notification system / rate limiter. Then 25 rapid-fire questions and a cheat sheet.</p>
+      <div class="hero-stats">
+        <div class="stat"><b>10</b><span>Deep Topics</span></div>
+        <div class="stat"><b>25</b><span>Rapid Fire Q&amp;A</span></div>
+        <div class="stat"><b>3</b><span>Full Case Studies</span></div>
+        <div class="stat"><b>1</b><span>Chapter Remaining</span></div>
+      </div>
+    </section>
+
+    <div class="content">
+
+      <!-- ============ TOPIC 1 ============ -->
+      <section class="topic" data-topic="1" id="t1">
+        <div class="topic-head">
+          <h2><span class="tagnum">01.</span> The System Design Interview Framework</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="1">☆</button>
+            <button class="check-btn" data-ck="1">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> System design interviews are deliberately open-ended and ambiguous — the actual thing being evaluated is less "did you arrive at the right architecture" and more "how do you think, and can you communicate a complex design out loud." A structured approach prevents the two most common failure modes: diving into details too early (spending 20 minutes on database schema before establishing what the system even needs to do), or staying so high-level the conversation never gets concrete enough to demonstrate real depth.</p>
+
+        <div class="framework-box">
+          <ol>
+            <li><b>1. Clarify Requirements (5 min)</b> Functional (what must it do — post a message, shorten a URL) and non-functional (scale, latency, consistency needs). Explicitly ask about scale — it changes the entire design.</li>
+            <li><b>2. Estimate Scale (3-5 min)</b> Back-of-envelope: daily active users, requests/sec, read:write ratio, storage growth per year. These numbers directly justify later decisions (e.g. "at this write volume, a single DB instance won't hold up").</li>
+            <li><b>3. High-Level Design (10 min)</b> Draw the major components and how data flows between them — client, load balancer, API servers, cache, database, queue — before drilling into any one of them.</li>
+            <li><b>4. Deep Dive (15-20 min)</b> Pick 1-2 components the interviewer steers toward (or that are genuinely the interesting/hard part) and go deep — schema, algorithm, specific trade-off.</li>
+            <li><b>5. Identify Bottlenecks &amp; Trade-offs (5 min)</b> Where does this design break under 10x scale? What did you deliberately sacrifice (strong consistency for availability, cost for latency) and why.</li>
+          </ol>
+        </div>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>At the level you're targeting, the interviewer already knows there's no single "correct" answer — they're evaluating whether you can navigate genuine ambiguity methodically, the same way you'd need to on a real, underspecified feature request from a product manager.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>This is exactly the muscle used when starting the CampVine DDD refactor with an ambiguous mandate as sole developer — clarifying what actually needed to change, estimating the real scope (127 tables), sketching bounded contexts at a high level before diving into any single domain's implementation.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Jumping straight to a detailed database schema or specific technology choice before establishing scale and requirements — the "right" answer for 1,000 users and 100 million users can be completely different designs.</li>
+          <li>Never asking clarifying questions at all, silently assuming requirements and building the wrong thing confidently.</li>
+          <li>Going so broad and generic ("we'd use a load balancer, then a database, then caching") that nothing demonstrates actual depth or a real decision being made.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I start by nailing down functional and non-functional requirements explicitly, especially scale — because the right design for a thousand users and a hundred million users often isn't the same design at all. Then a quick back-of-envelope estimate — requests per second, read-write ratio, storage growth — since those numbers directly justify decisions I'll make later, like whether a single database can handle the write volume. Then I sketch the high-level components before drilling into any one deeply, and I explicitly let the interviewer's interest (or the genuinely hard part of the problem) steer where we go deep, rather than trying to design everything to the same level of detail in the time available."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Walk me through your first two minutes on a completely new system design prompt.</li>
+          <li>Why does clarifying scale early change the rest of the design?</li>
+          <li>How do you decide which component to deep-dive into when the interviewer doesn't specify?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Back-of-envelope estimation — the numbers that justify later decisions</span>
+<span class="cmt">// Example: a camp booking search feature
+
+Daily Active Users:        500,000
+Avg searches per user/day: 4
+Total requests/day:        2,000,000
+Requests/sec (avg):        2,000,000 / 86,400 ≈ 23 req/s
+Requests/sec (peak, 5x):   ≈ 115 req/s
+Read:Write ratio:          ~20:1 (searches vastly outnumber bookings)
+
+// 115 req/s is comfortably within a single well-indexed DB + cache layer —
+// this number is WHY the design doesn't need sharding on day one.</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always state assumptions out loud rather than silently picking one — it invites correction and shows deliberate thinking.</li>
+          <li>Keep a rough time budget in mind so you reach the deep-dive phase — that's usually where the real signal is.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 2 ============ -->
+      <section class="topic" data-topic="2" id="t2">
+        <div class="topic-head">
+          <h2><span class="tagnum">02.</span> Load Balancers &amp; Reverse Proxies</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="2">☆</button>
+            <button class="check-btn" data-ck="2">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>load balancer</strong> distributes incoming requests across multiple server instances so no single one is overwhelmed, and removes unhealthy instances from rotation via health checks — a prerequisite for horizontal scaling. Common algorithms: <strong>round robin</strong> (cycle through servers evenly), <strong>least connections</strong> (send to whichever server currently has the fewest active connections — better when requests vary in cost), and <strong>IP hash</strong> (route the same client consistently to the same server, needed for sticky sessions). A <strong>reverse proxy</strong> (Nginx, often the same piece of infrastructure as the load balancer in practice) sits in front of application servers, handling SSL termination, static file serving, request buffering, and hiding backend server details from clients entirely.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Load balancing is the first real infrastructure decision in almost every system design answer once a single server won't cut it — this tests whether you understand it's not just "add more servers" but requires an actual distribution strategy and health-checking mechanism.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A booking platform's API servers sit behind a load balancer using least-connections (since a search request and a payment-processing request have very different costs), with health checks pulling an instance out of rotation automatically if it starts failing — preventing user-facing errors from one bad instance while the rest keep serving traffic.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Not accounting for the load balancer itself becoming a single point of failure — production setups typically need redundant load balancers, not just redundant app servers behind one.</li>
+          <li>Using sticky sessions (IP hash) by default when the backend is actually stateless — unnecessarily limits load distribution flexibility for no real benefit.</li>
+          <li>Forgetting health checks entirely, letting the load balancer keep routing traffic to an instance that's actually down or degraded.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Once a single server can't handle the load, a load balancer is the first piece of infrastructure I add — it needs both a distribution algorithm, usually least-connections when request cost varies, and active health checks so a failing instance gets pulled out of rotation automatically rather than continuing to receive traffic. I also make sure the load balancer itself isn't a single point of failure — that means redundant load balancers in front of the server pool, not just redundant servers behind a single one."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's the difference between round robin and least connections, and when would you pick each?</li>
+          <li>How do you avoid the load balancer itself becoming a single point of failure?</li>
+          <li>Why might you need sticky sessions, and what's the trade-off?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Client
+  │
+  ▼
+┌─────────────────┐
+│  Load Balancer   │  ← health checks each instance, routes around failures
+└─────────────────┘
+  │        │        │
+  ▼        ▼        ▼
+┌─────┐ ┌─────┐ ┌─────┐
+│App 1│ │App 2│ │App 3│   ← stateless, any instance can serve any request
+└─────┘ └─────┘ └─────┘</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Keep application servers stateless so any instance can serve any request — this is what makes load balancing actually work cleanly.</li>
+          <li>Run redundant load balancers; a single one is just a relocated single point of failure.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 3 ============ -->
+      <section class="topic" data-topic="3" id="t3">
+        <div class="topic-head">
+          <h2><span class="tagnum">03.</span> Horizontal vs Vertical Scaling &amp; Statelessness</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="3">☆</button>
+            <button class="check-btn" data-ck="3">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Vertical scaling</strong> (scaling up) means adding more resources — CPU, RAM — to a single machine; simple, no architectural change needed, but has a hard ceiling (the biggest machine available) and creates a single point of failure. <strong>Horizontal scaling</strong> (scaling out) means adding more machines and distributing load across them; a much higher ceiling and built-in redundancy, but requires the application to be designed for it — critically, requires the server itself to be <strong>stateless</strong>. A stateless server keeps no request-specific data in its own memory between requests (no in-memory session storage, no local file writes assumed to persist) — any server instance must be able to handle any request, with actual state living in a shared store (database, Redis) that every instance can reach.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is the foundational trade-off underlying nearly every other scaling decision in system design — and statelessness specifically is the prerequisite that's easy to overlook until it actively breaks a horizontal scaling plan (e.g. in-memory session data that only exists on the one server instance a user happened to hit first).</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Storing user session data in each Node process's local memory works fine with one server, but breaks the moment there are two — a user's second request might land on a different instance with no memory of their session at all, which is exactly why moving session state to Redis (a shared store every instance can read) is a prerequisite for horizontally scaling that service, not an optional nice-to-have.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Assuming horizontal scaling is a drop-in infrastructure change, missing that it requires the application itself to already be stateless — this is an architectural decision, not just an ops one.</li>
+          <li>Vertically scaling indefinitely as the default response to load, hitting a hard ceiling later and requiring a much more disruptive migration to a horizontally-scaled architecture under pressure, instead of building statelessness in from the start.</li>
+          <li>Storing file uploads on local disk in a horizontally-scaled setup, where a file saved on one instance isn't visible to requests served by a different instance — needs shared/object storage (like S3) instead.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Vertical scaling is simpler short-term but has a hard ceiling and no redundancy — you're still one machine failure away from an outage. Horizontal scaling has a much higher ceiling and built-in redundancy, but only works if the application is actually stateless — any instance needs to be able to handle any request, which means session data, uploaded files, anything request-specific has to live in a shared store like Redis or object storage, not in that instance's local memory or disk. I design for statelessness from the start even at small scale, since retrofitting it onto an app that's accumulated local state assumptions is a much bigger migration under pressure than building it in from day one."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What specifically breaks if you horizontally scale a server that stores session data in local memory?</li>
+          <li>What's the ceiling problem with vertical scaling, concretely?</li>
+          <li>Where would you store user-uploaded files in a horizontally-scaled architecture?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Breaks under horizontal scaling — session lives only in THIS instance's memory</span>
+<span class="kw">const</span> sessions = {}; <span class="cmt">// in-memory object, unique per server process</span>
+app.<span class="fn">post</span>(<span class="str">'/login'</span>, (req, res) => { sessions[userId] = { loggedIn: <span class="kw">true</span> }; });
+
+<span class="cmt">// Works at any scale — session lives in a shared store every instance can reach</span>
+<span class="kw">await</span> redis.<span class="fn">set</span>(<span class="str">`session:${userId}`</span>, <span class="kw">JSON</span>.<span class="fn">stringify</span>({ loggedIn: <span class="kw">true</span> }), <span class="str">'EX'</span>, <span class="num">3600</span>);</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Design for statelessness from the start, even before horizontal scaling is an immediate need — it's far cheaper than retrofitting.</li>
+          <li>Move any request-specific state (sessions, uploaded files) to a shared store reachable by every instance.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 4 ============ -->
+      <section class="topic" data-topic="4" id="t4">
+        <div class="topic-head">
+          <h2><span class="tagnum">04.</span> CAP Theorem &amp; Consistency Trade-offs</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="4">☆</button>
+            <button class="check-btn" data-ck="4">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> CAP theorem states that a distributed system can only guarantee two of three properties simultaneously during a <strong>network partition</strong> (a real, eventually-inevitable failure where nodes can't communicate): <strong>Consistency</strong> (every read gets the most recent write, or an error), <strong>Availability</strong> (every request gets a response, though not necessarily the latest data), <strong>Partition tolerance</strong> (the system keeps working despite network partitions). Since partitions are a fact of distributed systems life (network failures happen), the real-world choice is actually between <strong>CP</strong> (consistent but may reject requests during a partition) and <strong>AP</strong> (available but may serve stale data during a partition) — not a free choice of any two. In practice, most systems don't apply one choice uniformly — different parts of the same application pick differently based on what that specific data needs (payment records: CP; view counts: AP).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>CAP theorem tests whether you understand that distributed systems design is fundamentally about trade-offs, not a search for a design with no downsides — and specifically whether you can apply it concretely rather than reciting the definition without understanding what it means for an actual feature.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A booking platform's payment/inventory data (has this slot been booked or not) needs to lean CP — it's better to briefly reject a booking request during a partition than to let two instances both confirm the same slot based on stale data — while something like a camp's view count or a "currently browsing" indicator can lean AP, since briefly showing a slightly stale number is a completely acceptable trade-off for staying available.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Treating CAP as "pick any 2 of 3" freely — partition tolerance isn't really optional in a real distributed system, so the actual choice in practice is CP vs AP.</li>
+          <li>Applying one CAP choice uniformly across an entire system, when different data within the same application often has genuinely different consistency requirements.</li>
+          <li>Confusing CAP's strict "consistency" (linearizability) with the everyday meaning of "the data is usually correct" — CAP consistency is a strong, specific guarantee, and most systems that claim to be "eventually consistent" are deliberately choosing AP, not failing at CP.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Since network partitions are a real, unavoidable failure mode in any distributed system, the practical choice CAP forces is between consistency and availability specifically during that partition — not a free pick of any two. I don't apply that choice uniformly across a whole system though — for something like booking/inventory data, I'd lean CP, since briefly rejecting a request during a partition is a much smaller problem than two instances both confirming the same slot from stale data. For something like a view counter or an activity feed, AP is the right call — showing a slightly stale number is completely fine in exchange for staying available."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why isn't partition tolerance really "optional" in a real system?</li>
+          <li>Give an example of data in the same application that would reasonably be CP vs AP.</li>
+          <li>What does "eventually consistent" mean, and which side of CAP does it represent?</li>
+        </ul>
+
+        <pre><code><span class="cmt">CAP in practice during a network partition — pick one:
+
+CP (Consistency + Partition tolerance):
+  → reject/block the write until the partition heals
+  → correct for: payments, inventory, booking confirmations
+
+AP (Availability + Partition tolerance):
+  → serve a response anyway, possibly stale, reconcile later
+  → correct for: view counts, activity feeds, "last seen" indicators</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Apply CAP trade-offs per data type based on real business impact of staleness vs unavailability, not uniformly across the whole system.</li>
+          <li>Be precise about what "consistency" means in context — CAP's definition is stronger than casual usage of the word.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 5 ============ -->
+      <section class="topic" data-topic="5" id="t5">
+        <div class="topic-head">
+          <h2><span class="tagnum">05.</span> Database Replication &amp; Sharding at Scale</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="5">☆</button>
+            <button class="check-btn" data-ck="5">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Replication</strong> keeps copies of the full dataset on multiple database nodes. <strong>Leader-follower (primary-replica)</strong> is most common: writes go to the leader, which propagates changes to followers; reads can be distributed across followers for read scaling, at the cost of <strong>replication lag</strong> — a follower might briefly serve stale data right after a write. <strong>Multi-leader</strong> replication accepts writes on multiple nodes (useful for multi-region setups) but introduces write-conflict resolution complexity. <strong>Sharding</strong> is fundamentally different — it splits the dataset itself horizontally across multiple database instances, each holding only a subset of the data, chosen by a <strong>shard key</strong> (e.g. <code>user_id</code> or a geographic region). Sharding is necessary when a single instance can't hold or serve the full dataset even with a powerful machine and read replicas; it's a much bigger architectural commitment since cross-shard joins/transactions become genuinely hard.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This tests whether a candidate reaches for sharding appropriately — it's frequently over-prescribed in interviews as a default "at scale" answer when replication (or better indexing/caching) solves the actual bottleneck far more simply, so knowing the real triggers for each separates genuine understanding from pattern-matched buzzwords.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A booking platform's read-heavy search traffic is a textbook read-replica case — route search queries to followers, keep writes (actual bookings) on the leader — and this alone likely handles scale for a very long time before sharding is genuinely needed; sharding would only become necessary if the dataset itself grew too large for a single instance to hold, which is a fundamentally different problem than "too many reads."</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Reaching for sharding as the default "how do you scale a database" answer when the actual bottleneck (read load) is much better solved by read replicas — a far smaller architectural change.</li>
+          <li>Not accounting for replication lag — reading your own just-written data from a follower immediately after the write can show stale results, a real bug class ("why doesn't my booking show up immediately") if not handled with read-after-write consistency where it matters.</li>
+          <li>Picking a shard key that creates hot spots — e.g. sharding by signup date when most active traffic is on recently-created accounts, concentrating load unevenly instead of distributing it.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I reach for read replicas long before sharding — most real bottlenecks are read-heavy, and leader-follower replication solves that with a much smaller architectural footprint, distributing reads across followers while writes stay on the leader. The trade-off to be upfront about is replication lag — a follower can briefly serve stale data right after a write, so anywhere read-after-write consistency actually matters, like a user immediately seeing their own new booking, I'd route that specific read to the leader rather than a follower. Sharding I treat as a last resort, only once the dataset itself genuinely can't fit or be served by a single instance even with replicas — and if I do shard, the shard key choice is the whole game, since a bad key creates hot spots that just relocate the original problem."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's replication lag, and how would you handle a "read your own write" requirement despite it?</li>
+          <li>What makes a good vs bad shard key choice?</li>
+          <li>Why is sharding a bigger architectural commitment than adding read replicas?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Leader-Follower Replication:
+
+  Writes ──▶ [Leader] ──replicates──▶ [Follower 1]
+                    └──replicates──▶ [Follower 2]
+  Reads  ──▶ [Follower 1 or 2]   (scales read capacity, has lag risk)
+
+Sharding by user_id (splits the DATASET, not just read load):
+
+  user_id % 3 == 0 ──▶ [Shard A]
+  user_id % 3 == 1 ──▶ [Shard B]
+  user_id % 3 == 2 ──▶ [Shard C]
+  (a query needing data across shards now needs a cross-shard fan-out)</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Exhaust replication, indexing, and caching before considering sharding.</li>
+          <li>Route read-after-write-sensitive queries to the leader explicitly, rather than assuming follower reads are always safe.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 6 ============ -->
+      <section class="topic" data-topic="6" id="t6">
+        <div class="topic-head">
+          <h2><span class="tagnum">06.</span> Caching Architecture &amp; CDNs at Scale</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="6">☆</button>
+            <button class="check-btn" data-ck="6">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> At a system-design level, caching happens at multiple layers stacked together: <strong>CDN edge caching</strong> (static assets, sometimes full page responses, served from locations near the user), <strong>application-layer caching</strong> (Redis/Memcached in front of the database), and <strong>client-side/browser caching</strong>. A distributed cache like Redis can itself be scaled via replication and, at large scale, <strong>consistent hashing</strong> — a technique for distributing cache keys across multiple cache nodes such that adding or removing a node only reshuffles a small fraction of keys, instead of nearly all of them (which plain modulo-based hashing would cause, triggering a massive cache-miss storm). Eviction policies (<strong>LRU</strong> — evict least recently used, <strong>LFU</strong> — evict least frequently used, <strong>TTL</strong>-based) determine what gets removed when the cache is full.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>At scale, caching stops being "add Redis" and becomes its own distributed system with its own failure modes — consistent hashing specifically is a strong signal of genuine distributed-systems depth versus surface-level "caching speeds things up" knowledge.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A camp search results cache under heavy read traffic benefits from consistent hashing across multiple Redis nodes specifically because it means scaling the cache cluster up or down (adding a node during a traffic spike) doesn't invalidate almost the entire cache at once — with plain modulo hashing, adding one node to a 4-node cluster would remap roughly 80% of keys, causing a sudden flood of cache misses hitting the database simultaneously.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using simple modulo-based hashing (<code>hash(key) % numNodes</code>) to distribute cache keys across nodes, causing almost total cache invalidation whenever a node is added or removed — exactly the problem consistent hashing solves.</li>
+          <li>Not planning for cache stampede — many requests simultaneously missing the same expired key and all hammering the database at once to recompute it; usually mitigated with a lock/single-flight pattern or staggered TTL jitter.</li>
+          <li>Caching at only one layer when a layered approach (CDN + application cache) would reduce load far more effectively at each stage.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I think of caching as layered — CDN for static assets closest to the user, application-layer Redis in front of the database for computed/query results. Once the cache itself needs to scale across multiple nodes, the key detail is how keys get distributed — plain modulo hashing means adding or removing a node reshuffles almost every key at once, causing a massive simultaneous cache-miss storm against the database. Consistent hashing avoids that by only reassigning a small fraction of keys when the cluster changes size. I also plan explicitly for cache stampede — if a hot key expires and many requests miss it simultaneously, without a lock or staggered TTL, all of them hit the database at once for the same recomputation."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why does modulo-based hashing cause a cache-miss storm when a node is added?</li>
+          <li>What's a cache stampede, and how would you prevent one?</li>
+          <li>What's the difference between LRU and LFU eviction, and when would each be more appropriate?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Naive modulo hashing — adding a 4th node reshuffles ~75% of keys
+nodeIndex = hash(key) % numNodes;
+
+// Consistent hashing — nodes and keys both mapped onto a ring;
+// adding/removing a node only affects keys in its adjacent ring segment,
+// not the entire keyspace
+
+// Cache stampede mitigation — single-flight lock around recomputation
+async function getWithLock(key) {
+  const cached = await redis.get(key);
+  if (cached) return cached;
+
+  const lockAcquired = await redis.set(`lock:${key}`, '1', 'NX', 'EX', 5);
+  if (!lockAcquired) { await sleep(50); return getWithLock(key); } // wait, retry
+
+  const fresh = await computeExpensiveValue();
+  await redis.set(key, fresh, 'EX', 300);
+  await redis.del(`lock:${key}`);
+  return fresh;
+}</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Use consistent hashing for any cache cluster expected to scale up/down, to avoid mass cache invalidation.</li>
+          <li>Protect hot keys with a stampede-prevention mechanism (lock or jittered TTL) rather than assuming misses are always cheap.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 7 ============ -->
+      <section class="topic" data-topic="7" id="t7">
+        <div class="topic-head">
+          <h2><span class="tagnum">07.</span> Message Queues, Pub/Sub &amp; Event-Driven Architecture</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="7">☆</button>
+            <button class="check-btn" data-ck="7">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>message queue</strong> (RabbitMQ, SQS) delivers each message to exactly one consumer — good for distributing work across a pool of workers (a job queue). <strong>Pub/Sub</strong> (Kafka, Redis Pub/Sub, SNS) delivers each message to <em>every</em> subscriber independently — good for broadcasting an event to multiple independent systems that each need to react. <strong>Event-driven architecture</strong> builds a system around producing and reacting to events rather than direct service-to-service calls, decoupling producers from consumers entirely — a producer doesn't need to know who's listening or how many consumers exist. <strong>Kafka</strong specifically is a durable, ordered, replayable log (not just a transient queue) — consumers can re-read history and multiple independent consumer groups can process the same stream at their own pace, which is fundamentally different from a traditional queue where a consumed message is gone.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Distinguishing queue-style (one consumer) from pub/sub-style (every subscriber) delivery is a common point of confusion, and getting it wrong in a system design leads to a genuinely broken architecture — like assuming every downstream service will receive an event when the actual technology only delivers it to one.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A <code>booking.created</code> event needs to reach several independent systems — send a confirmation email, update analytics, notify the organizer, kick off the background check — which is a pub/sub/event-bus shape (every subscriber gets it), fundamentally different from processing a pool of image-resize jobs where each job should be picked up by exactly one worker, which is a traditional queue shape.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using a plain message queue when multiple independent systems each need to react to the same event, not realizing a queue only delivers to one consumer — the second "subscriber" simply never receives messages the first one already consumed.</li>
+          <li>Not designing consumers to be idempotent, since most messaging systems guarantee at-least-once delivery, meaning duplicate processing is expected, not exceptional.</li>
+          <li>Choosing Kafka for a simple job-queue use case where its replay/ordering/durability guarantees add operational complexity with no real benefit over a simpler queue.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The distinction I make immediately is whether this event needs to reach one consumer or every interested consumer — a job queue distributing image-processing work across a worker pool is one-consumer-per-message, so a traditional queue fits; a 'booking created' event that needs to trigger an email, update analytics, and notify an organizer independently is pub/sub, since every one of those needs its own copy of the event. Either way, I design consumers assuming at-least-once delivery and build in idempotency, since that's the standard guarantee most messaging systems actually make — exactly-once is the exception, not the default to assume."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What actually breaks if you use a plain queue where you needed pub/sub?</li>
+          <li>What makes Kafka different from a traditional message queue like RabbitMQ?</li>
+          <li>Why does event-driven architecture make a system harder to reason about, even though it decouples services?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Queue (one consumer per message) — worker pool pattern:
+
+  [Producer] ──▶ [Queue: resize-jobs] ──▶ Worker 1  (picks up job A)
+                                      ──▶ Worker 2  (picks up job B)
+                  each message consumed by exactly ONE worker
+
+Pub/Sub (every subscriber gets a copy) — event broadcast pattern:
+
+  [booking.created event]
+        │
+        ├──▶ Email Service       (sends confirmation)
+        ├──▶ Analytics Service   (logs the event)
+        └──▶ Notification Service (alerts the organizer)
+  EVERY subscriber independently receives its own copy</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Choose queue vs pub/sub based explicitly on whether one or many consumers need each message — this is a hard architectural constraint, not a style preference.</li>
+          <li>Design every consumer assuming at-least-once delivery; idempotency is a requirement, not an optimization.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 8 ============ -->
+      <section class="topic" data-topic="8" id="t8">
+        <div class="topic-head">
+          <h2><span class="tagnum">08.</span> Case Study: Design a URL Shortener</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="8">☆</button>
+            <button class="check-btn" data-ck="8">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> The core challenge is generating a short, unique, unpredictable-enough code and mapping it to a long URL with a lookup fast enough for real-time redirects. Two common approaches: <strong>base62 encoding of an auto-incrementing ID</strong> (simple, guaranteed unique, but sequential IDs are guessable/enumerable) or a <strong>hash of the URL</strong> truncated to a fixed length (needs collision handling, since truncated hashes can collide). The system is overwhelmingly <strong>read-heavy</strong> — far more redirects happen than new URLs get created — which directly shapes the design toward aggressive caching of the short-code → long-URL mapping and read-optimized storage.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>It's a small, bounded problem that still touches ID generation, caching, read/write ratio reasoning, and database choice — making it a favorite for a 30-45 minute interview slot where there's time for a real deep dive, not just a surface sketch.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Directly analogous to generating shareable booking confirmation links or referral codes on a platform like CampVine — the same core problem (short, unique, fast-lookup identifier mapped to a longer record) shows up constantly in real backend work beyond the specific "URL shortener" framing.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Not addressing collision handling at all when using a hash-based approach — truncated hashes can and will collide at scale, needing a fallback strategy.</li>
+          <li>Missing that the system is read-heavy and designing it as if reads and writes were roughly balanced — this should drive the caching strategy and possibly the choice to denormalize/cache aggressively.</li>
+          <li>Not considering custom aliases or expiration as functional requirements the interviewer might expect to be asked about.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I'd clarify scale and whether custom aliases/expiration are needed, then go with base62-encoding an auto-incrementing ID for the short code — simple and collision-free by construction, unlike a truncated hash. Given this is overwhelmingly read-heavy — far more redirects than URL creations — I'd put a cache in front of the database for the short-code lookup, since that's the hot path on every single redirect, and the database itself just needs a straightforward indexed lookup table. For scale beyond a single instance, the ID generation itself needs to be distributed-safe — either a centralized ID generation service or pre-allocated ID ranges per server — so multiple app servers don't hand out the same ID."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How would you generate unique IDs across multiple app server instances without collisions?</li>
+          <li>How would you support custom user-chosen aliases alongside auto-generated codes?</li>
+          <li>What happens to the cache when a URL is deleted or expires?</li>
+        </ul>
+
+        <pre><code><span class="cmt">High-level design:
+
+  Client ──▶ [Load Balancer] ──▶ [API Servers] ──▶ [Cache: code → URL]
+                                        │                    │ (miss)
+                                        ▼                    ▼
+                              [DB: id, short_code, long_url, created_at]
+
+Short code generation:
+  auto-increment ID (12345) ──▶ base62 encode ──▶ "3d7"
+  (guaranteed unique, no collision handling needed, unlike hashing)
+
+Read path (hot):  short_code ──▶ cache hit ──▶ 301/302 redirect
+Write path (cold): long_url ──▶ generate ID ──▶ store ──▶ return short_code</code></pre><button class="copy-btn">copy</button>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Design the ID generation strategy to be safe across multiple distributed app servers from the start.</li>
+          <li>Cache the hot read path aggressively — this system's entire performance profile is dominated by redirect lookups.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 9 ============ -->
+      <section class="topic" data-topic="9" id="t9">
+        <div class="topic-head">
+          <h2><span class="tagnum">09.</span> Case Study: Design a Chat Application</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="9">☆</button>
+            <button class="check-btn" data-ck="9">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A chat system needs real-time bidirectional delivery (WebSockets, as covered in Chapter 3), message persistence (so history survives a disconnect/reload), delivery guarantees (at minimum "delivered," ideally "read" receipts), and — the genuinely hard part at scale — <strong>routing a message to the right recipient regardless of which server instance holds their connection</strong>. Since WebSocket connections are stateful and pinned to a specific server instance, a message sent by User A has to be routed to whichever specific instance User B is currently connected to — solved with a pub/sub layer (Redis or Kafka) that every server instance subscribes to, broadcasting "deliver this message to user B" so the instance actually holding B's connection can pick it up and push it.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This case study specifically tests whether a candidate understands the operational reality of stateful connections at scale — it's a natural continuation of the WebSocket horizontal-scaling problem, and a strong candidate connects those dots without being prompted.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Directly relevant to a real feature like organizer-to-guest messaging on a booking platform — the exact same architecture (WebSocket + pub/sub cross-instance routing + persisted message history) would be needed the moment that feature needed to run on more than one server instance.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Designing the WebSocket layer without addressing how a message reaches a recipient connected to a <em>different</em> server instance than the sender — the single hardest and most commonly glossed-over part of this problem.</li>
+          <li>Not separating the real-time delivery path from persistence — a message should be durably stored (so it survives a server restart or appears correctly on reload) independent of whether the real-time push succeeds.</li>
+          <li>Ignoring offline delivery — what happens to a message sent to a currently-disconnected user; it needs to be queryable/delivered on their next reconnect, not silently lost.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The real-time transport is WebSockets, but the part that actually makes this hard at scale is that those connections are stateful and pinned to a specific server instance — so when User A sends a message, the server handling A's connection doesn't necessarily hold B's connection too. I'd solve that with a pub/sub layer like Redis that every instance subscribes to: A's server publishes the message, and whichever instance actually holds B's connection picks it up and pushes it over that socket. Separately, and independently of whether that real-time push succeeds, the message gets durably written to a database — so chat history survives reconnects and a message to an offline user is queryable and deliverable the next time they connect, rather than being lost if the push simply had no live socket to reach."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How does a message get from Sender to Recipient when they're connected to different server instances?</li>
+          <li>How would you handle delivering a message to a user who's currently offline?</li>
+          <li>How would you implement read receipts without a huge write amplification problem on group chats?</li>
+        </ul>
+
+        <pre><code><span class="cmt">User A ──WebSocket──▶ [Server Instance 1]
+                              │
+                              ▼
+                    publish("deliver:userB", message) ──▶ [Redis Pub/Sub]
+                                                                  │
+                                                     every instance subscribed
+                                                                  │
+                                                                  ▼
+                                                     [Server Instance 2] (holds B's socket)
+                                                                  │
+                                                                  ▼
+                                                     User B ◀──WebSocket── pushed
+
+// Independently — durable write, doesn't depend on the push succeeding
+INSERT INTO messages (sender_id, recipient_id, body, sent_at) VALUES (...);</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always separate durable message persistence from the real-time push mechanism — persistence should never depend on a live connection existing.</li>
+          <li>Explicitly design the cross-instance routing problem (pub/sub) rather than assuming a single-instance WebSocket setup scales as-is.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 10 ============ -->
+      <section class="topic" data-topic="10" id="t10">
+        <div class="topic-head">
+          <h2><span class="tagnum">10.</span> Case Study: Design a Notification System &amp; Rate Limiter</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="10">☆</button>
+            <button class="check-btn" data-ck="10">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A notification system fans a single triggering event out across multiple channels (push, email, SMS, in-app) with very different delivery characteristics — different latency, different failure modes, different providers — which is why it's naturally an event-driven, queue-backed design: the triggering event goes onto a queue/bus, and independent workers per channel consume it and handle their own provider-specific delivery and retry logic without blocking each other. A <strong>rate limiter</strong> is often a required sub-component (don't spam a user with duplicate notifications, respect a downstream provider's own rate limits) — commonly implemented with the <strong>token bucket</strong> algorithm (a bucket refills at a fixed rate and each request consumes a token; requests are rejected once the bucket is empty, but bursts up to the bucket size are allowed) or a <strong>sliding window</strong> counter (more precise, more computationally expensive) tracked in Redis for shared state across server instances.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This combines several earlier topics (event-driven architecture, queues, idempotency) into one cohesive design, and the rate limiter sub-problem specifically is a very common standalone interview question in its own right, testing precise algorithmic thinking under a real constraint.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A booking confirmation triggers exactly this fan-out — email confirmation, push notification to the organizer, in-app notification badge — each handled by an independent consumer so a slow/down email provider doesn't delay or block the push notification from going out; and a per-user rate limit on notifications prevents a bug or retry storm from spamming a single user with the same alert dozens of times.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Sending to all channels synchronously and sequentially in one request handler, meaning a slow or down provider for one channel (say, SMS) delays or blocks the others entirely.</li>
+          <li>Not deduplicating/rate-limiting notifications, so a retry or a bug causes the same alert to be sent to a user many times — a real, user-visible reliability problem, not just an edge case.</li>
+          <li>Implementing a rate limiter with local in-memory state on a single server instance, which doesn't work correctly the moment there's more than one instance — needs shared state (Redis) so the limit is enforced consistently across all of them.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I'd design this as event-driven from the trigger outward — a booking-confirmed event goes onto a bus, and independent consumers per channel (email, push, SMS) each handle their own delivery and retry logic, so a slow or failing provider on one channel never blocks the others. For the rate limiting piece specifically, I'd use a token-bucket algorithm backed by Redis rather than in-memory state, since the limit needs to be enforced consistently across however many server instances are running — in-memory counters would let each instance independently think the user is under the limit, effectively multiplying the real limit by the number of instances. Token bucket specifically because it allows reasonable bursts while still capping the sustained rate, which fits notification behavior better than a hard fixed-window cutoff."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why would a rate limiter using local in-memory state break across multiple server instances?</li>
+          <li>Walk through exactly how the token bucket algorithm works.</li>
+          <li>How would you prevent a user from receiving the same notification twice due to a retry?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Token bucket rate limiter, Redis-backed for shared state across instances</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">allowRequest</span>(userId, bucketSize = <span class="num">10</span>, refillPerSec = <span class="num">1</span>) {
+  <span class="kw">const</span> key = <span class="str">`ratelimit:${userId}`</span>;
+  <span class="kw">const</span> now = <span class="kw">Date</span>.<span class="fn">now</span>() / <span class="num">1000</span>;
+
+  <span class="kw">const</span> bucket = <span class="kw">await</span> redis.<span class="fn">hgetall</span>(key) || { tokens: bucketSize, lastRefill: now };
+  <span class="kw">const</span> elapsed = now - bucket.lastRefill;
+  <span class="kw">const</span> tokens = <span class="kw">Math</span>.<span class="fn">min</span>(bucketSize, bucket.tokens + elapsed * refillPerSec);
+
+  <span class="kw">if</span> (tokens < <span class="num">1</span>) <span class="kw">return</span> <span class="kw">false</span>; <span class="cmt">// rate limited — bucket empty</span>
+
+  <span class="kw">await</span> redis.<span class="fn">hset</span>(key, { tokens: tokens - <span class="num">1</span>, lastRefill: now });
+  <span class="kw">return</span> <span class="kw">true</span>; <span class="cmt">// allowed, one token consumed</span>
+}
+
+<span class="cmt">// Notification fan-out — independent consumers per channel</span>
+eventBus.<span class="fn">publish</span>(<span class="str">'booking.confirmed'</span>, { bookingId, userId });
+<span class="cmt">// EmailWorker, PushWorker, and SMSWorker each subscribe independently —
+// a slow SMS provider never blocks email or push delivery</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Fan out to delivery channels independently via a queue/event bus, never synchronously in one blocking request.</li>
+          <li>Back any rate limiter with shared state (Redis), never local in-memory counters, once more than one server instance is in play.</li>
+        </ul>
+      </section>
+
+      <!-- ============ RAPID FIRE ============ -->
+      <section class="topic" id="rapidfire">
+        <div class="topic-head"><h2><span class="tagnum">⚡</span> Rapid-Fire Q&amp;A — System Design</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">Click any question to reveal a tight, interview-ready answer.</p>
+        <div class="rapid-grid" id="rapid-grid"></div>
+      </section>
+
+      <!-- ============ CHEAT SHEET ============ -->
+      <section class="topic" id="cheatsheet-section">
+        <div class="topic-head"><h2><span class="tagnum">📋</span> Printable Revision Cheat Sheet</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">One line per concept — for the 10 minutes before you walk in.</p>
+        <div class="cheatsheet">
+          <table>
+            <tr><th>Concept</th><th>One-line answer</th></tr>
+            <tr><td>Interview framework</td><td>Requirements → estimate scale → high-level design → deep dive → bottlenecks/trade-offs.</td></tr>
+            <tr><td>Load balancer algorithms</td><td>Round robin (even), least connections (variable cost), IP hash (sticky sessions).</td></tr>
+            <tr><td>Vertical vs horizontal scaling</td><td>Vertical: bigger machine, hard ceiling. Horizontal: more machines, needs statelessness.</td></tr>
+            <tr><td>Statelessness</td><td>No request-specific data in server memory — any instance can serve any request.</td></tr>
+            <tr><td>CAP theorem practical choice</td><td>Partition tolerance isn't optional — real choice is CP vs AP during a partition.</td></tr>
+            <tr><td>Replication lag</td><td>Follower may briefly serve stale data right after a write to the leader.</td></tr>
+            <tr><td>Sharding trigger</td><td>Dataset itself too large for one instance — not just "too many reads" (that's replication's job).</td></tr>
+            <tr><td>Bad shard key</td><td>Creates hot spots — uneven load concentrated on one shard instead of distributed.</td></tr>
+            <tr><td>Consistent hashing</td><td>Adding/removing a cache node reshuffles only a small fraction of keys, not nearly all.</td></tr>
+            <tr><td>Cache stampede</td><td>Many requests miss the same expired hot key simultaneously — mitigate with a lock or TTL jitter.</td></tr>
+            <tr><td>Queue vs Pub/Sub</td><td>Queue: one consumer per message (worker pool). Pub/Sub: every subscriber gets a copy.</td></tr>
+            <tr><td>At-least-once delivery</td><td>The standard guarantee — design every consumer to be idempotent.</td></tr>
+            <tr><td>URL shortener core design</td><td>Base62-encoded auto-increment ID + aggressive cache on the read-heavy redirect path.</td></tr>
+            <tr><td>Chat app cross-instance routing</td><td>Pub/sub (Redis) so a message reaches whichever instance holds the recipient's socket.</td></tr>
+            <tr><td>Chat persistence</td><td>Durable DB write independent of whether the real-time push succeeds.</td></tr>
+            <tr><td>Notification fan-out</td><td>Event-driven, independent consumer per channel — one slow provider doesn't block others.</td></tr>
+            <tr><td>Token bucket</td><td>Refills at a fixed rate, allows bursts up to bucket size, rejects once empty.</td></tr>
+            <tr><td>Rate limiter at scale</td><td>Must use shared state (Redis) — in-memory counters break across multiple instances.</td></tr>
+            <tr><td>Reverse proxy role</td><td>SSL termination, static file serving, hides backend details from clients.</td></tr>
+            <tr><td>Back-of-envelope estimation</td><td>DAU × actions/day → requests/sec; justifies later design decisions with real numbers.</td></tr>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="part-footer">
+      <div class="next"><b>Next up — Chapter 7 (final)</b>HR &amp; Behavioral Questions, Project Storytelling, Salary Negotiation</div>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">Part 6 of 7 · System Design · complete</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const typedEl = document.getElementById('typed');
+const typedText = "$ interview-prep --chapter=6 --topic=system-design --whiteboard";
+let ti = 0;
+function typeStep(){
+  if(ti <= typedText.length){ typedEl.textContent = typedText.slice(0, ti); ti++; setTimeout(typeStep, 18); }
+}
+typeStep();
+
+const topics = [
+  {id:1, title:'The System Design Interview Framework'},
+  {id:2, title:'Load Balancers & Reverse Proxies'},
+  {id:3, title:'Horizontal vs Vertical Scaling'},
+  {id:4, title:'CAP Theorem & Consistency Trade-offs'},
+  {id:5, title:'Database Replication & Sharding'},
+  {id:6, title:'Caching Architecture & CDNs at Scale'},
+  {id:7, title:'Message Queues & Event-Driven Architecture'},
+  {id:8, title:'Case Study: URL Shortener'},
+  {id:9, title:'Case Study: Chat Application'},
+  {id:10, title:'Case Study: Notification System & Rate Limiter'},
+];
+
+const tocEl = document.getElementById('toc');
+topics.forEach(t=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#t${t.id}" data-toc="${t.id}">${String(t.id).padStart(2,'0')}. ${t.title}</a>`;
+  tocEl.appendChild(li);
+});
+
+const LS_CHECK = 'ip_ch6_checked';
+const LS_BOOKMARK = 'ip_ch6_bookmarks';
+const getChecked = () => JSON.parse(localStorage.getItem(LS_CHECK) || '[]');
+const setChecked = (arr) => localStorage.setItem(LS_CHECK, JSON.stringify(arr));
+const getBookmarks = () => JSON.parse(localStorage.getItem(LS_BOOKMARK) || '[]');
+const setBookmarks = (arr) => localStorage.setItem(LS_BOOKMARK, JSON.stringify(arr));
+
+function refreshProgress(){
+  const checked = getChecked();
+  document.getElementById('progress-text').textContent = `${checked.length} / ${topics.length}`;
+  document.getElementById('progress-fill').style.width = (checked.length/topics.length*100) + '%';
+  document.querySelectorAll('.check-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-ck');
+    btn.classList.toggle('active', checked.includes(id));
+  });
+  document.querySelectorAll('.toc a[data-toc]').forEach(a=>{
+    a.classList.toggle('done', checked.includes(a.getAttribute('data-toc')));
+  });
+}
+
+function refreshBookmarks(){
+  const bm = getBookmarks();
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-bm');
+    btn.classList.toggle('active', bm.includes(id));
+    btn.textContent = bm.includes(id) ? '★' : '☆';
+  });
+  const list = document.getElementById('bookmark-list');
+  if(bm.length === 0){
+    list.innerHTML = '<li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li>';
+    return;
+  }
+  list.innerHTML = bm.map(id=>{
+    const t = topics.find(t=>String(t.id)===String(id));
+    return t ? `<li><a href="#t${t.id}">★ ${t.title}</a></li>` : '';
+  }).join('');
+}
+
+document.querySelectorAll('.check-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-ck');
+    let checked = getChecked();
+    checked = checked.includes(id) ? checked.filter(x=>x!==id) : [...checked, id];
+    setChecked(checked);
+    refreshProgress();
+  });
+});
+
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-bm');
+    let bm = getBookmarks();
+    bm = bm.includes(id) ? bm.filter(x=>x!==id) : [...bm, id];
+    setBookmarks(bm);
+    refreshBookmarks();
+  });
+});
+
+refreshProgress();
+refreshBookmarks();
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const codeText = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(codeText).then(()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(()=> btn.textContent = orig, 1200);
+    });
+  });
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('section.topic[data-topic]').forEach(sec=>{
+    const text = sec.innerText.toLowerCase();
+    sec.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+
+const rapidFire = [
+  ["What's the difference between a forward proxy and a reverse proxy?", "A forward proxy sits in front of clients, hiding/managing their outgoing requests (e.g. corporate proxy); a reverse proxy sits in front of servers, hiding backend details and routing incoming client requests."],
+  ["What is a single point of failure, and how do you eliminate one?", "Any component whose failure takes down the whole system; eliminated by adding redundancy — multiple instances behind a load balancer, replicated databases, redundant load balancers themselves."],
+  ["What's the difference between latency and throughput?", "Latency: time for a single request to complete. Throughput: how many requests the system can handle per unit time — you can optimize one at some cost to the other."],
+  ["What does 'eventual consistency' mean?", "The system will become consistent given enough time with no new writes, but doesn't guarantee an immediate read reflects the latest write — an AP-leaning trade-off."],
+  ["What's the difference between synchronous and asynchronous replication?", "Synchronous: the leader waits for a follower to confirm before acknowledging the write (safer, slower). Asynchronous: leader acknowledges immediately, replicates in the background (faster, risk of data loss on leader failure)."],
+  ["What is a bloom filter, and what's a real use for one?", "A space-efficient probabilistic structure that can definitively say 'not present' or 'possibly present' (never a false negative, can have false positives) — used to quickly check if a username is likely taken before a full DB query."],
+  ["What's the difference between vertical partitioning and sharding?", "Vertical partitioning splits a table by columns onto different storage; sharding (horizontal partitioning) splits by rows across multiple database instances."],
+  ["What is a heartbeat in the context of distributed systems?", "A periodic signal a node sends to indicate it's still alive — used by load balancers and cluster managers to detect failures and trigger failover."],
+  ["What's the difference between optimistic and pessimistic concurrency control at a system level?", "Optimistic: proceed assuming no conflict, detect and retry on collision (version check). Pessimistic: lock the resource upfront, blocking other access until released."],
+  ["What is idempotency key used for in a distributed payment system?", "A client-generated unique key per logical operation attempt, stored server-side, letting a retried request be recognized and safely ignored instead of double-processed."],
+  ["What's the difference between a monolithic and distributed cache?", "Monolithic: single cache instance, simple, limited capacity/single point of failure. Distributed: multiple cache nodes sharing the keyspace, needs consistent hashing and has its own failure handling."],
+  ["What does 'graceful degradation' mean in system design?", "The system continues operating with reduced functionality when a component fails, rather than failing completely — e.g. showing cached data if the live service is down."],
+  ["What is the thundering herd problem?", "Many processes/requests waking up or retrying simultaneously in response to the same event (like a cache expiry or a server recovering), overwhelming the resource they all need at once."],
+  ["What's the difference between a hot shard and a cold shard?", "A hot shard receives disproportionately more traffic/data than others due to a poor shard key choice; a cold shard is underutilized — both indicate the shard key needs rethinking."],
+  ["What is a write-ahead log (WAL) used for?", "Recording changes to a durable log before applying them to the actual data structure, so the system can recover to a consistent state after a crash by replaying the log."],
+  ["What's the difference between a synchronous API call and an async job for a slow operation?", "Synchronous blocks the caller until the operation finishes, risking timeouts on slow operations; async queues the work and returns immediately, with the caller polling or being notified on completion."],
+  ["What does 'N+1 problem' mean outside of just database queries, at a system level?", "Making N additional network calls to related services after an initial call, when a batched/aggregated call could fetch all needed data in far fewer round trips — the same anti-pattern as the DB version, at the service-call level."],
+  ["What is a service mesh, in one line?", "Infrastructure layer handling service-to-service communication concerns (retries, load balancing, observability, security) transparently, without each service implementing that logic itself."],
+  ["What's the difference between vertical scaling a database vs adding read replicas?", "Vertical scaling: bigger single instance, helps both reads and writes but has a hard ceiling. Read replicas: only helps read capacity, doesn't help write throughput at all."],
+  ["What does 'fan-out on write' vs 'fan-out on read' mean for a feed system?", "Fan-out on write: precompute and push new content into every follower's feed at post time (fast reads, expensive for high-follower accounts). Fan-out on read: compute the feed at request time by pulling from all followed accounts (slower reads, no wasted precompute for inactive users)."],
+  ["What is a dead letter queue?", "A separate queue where messages that repeatedly fail processing are routed after exhausting retries, so they can be inspected/reprocessed manually instead of blocking the main queue or being silently dropped."],
+  ["What's the difference between strong consistency and read-after-write consistency?", "Strong consistency: every read anywhere reflects the latest write immediately. Read-after-write: only guarantees the specific writer sees their own write immediately — a weaker, cheaper, often sufficient guarantee."],
+  ["Why might you choose UUID over auto-increment ID for a distributed system?", "UUIDs can be generated independently on any node without coordination, avoiding ID collisions across distributed writers — auto-increment requires a single coordinating source to stay unique."],
+  ["What's the trade-off of denormalizing data specifically for a system-design-scale read path?", "Faster reads (no join/aggregation needed) at the cost of extra write complexity to keep the denormalized copy in sync, and increased storage."],
+  ["What does 'chatty' service communication mean, and why is it a problem?", "A design requiring many small, sequential network calls between services to complete one logical operation — each call adds latency and failure risk, compounding badly under real network conditions."],
+];
+const grid = document.getElementById('rapid-grid');
+rapidFire.forEach(([q,a])=>{
+  const d = document.createElement('details');
+  d.className = 'qa';
+  d.innerHTML = `<summary>${q}</summary><div class="ans">${a}</div>`;
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>
