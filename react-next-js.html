@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep :: Part 2 — React &amp; Next.js</title>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --surface:#11151c;
+    --surface-alt:#171c26;
+    --border:#232936;
+    --text:#d7dce3;
+    --text-dim:#8b93a1;
+    --text-faint:#5c6472;
+    --accent:#e3b341;
+    --accent-dim:#8a6d2a;
+    --cyan:#5fd3bc;
+    --red:#e8735c;
+    --green:#6fcf97;
+    --mono: 'SF Mono', 'Fira Code', Consolas, Menlo, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.65; }
+  ::selection{background:var(--accent); color:#161616;}
+  a{color:var(--cyan);}
+  code, pre{font-family:var(--mono);}
+  code{background:var(--surface-alt); padding:2px 6px; border-radius:4px; color:var(--accent); font-size:0.87em;}
+
+  #app{display:flex; min-height:100vh;}
+  #sidebar{
+    width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+    position:fixed; top:0; left:0; bottom:0; overflow-y:auto; padding:20px 16px 40px;
+  }
+  #main{margin-left:300px; flex:1; min-width:0; padding:0;}
+  @media (max-width: 900px){
+    #sidebar{position:relative; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);}
+    #main{margin-left:0;}
+    #app{flex-direction:column;}
+  }
+
+  .brand{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:0.5px; margin-bottom:4px;}
+  .brand-title{font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:18px; font-weight:600;}
+  #search{
+    width:100%; padding:9px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:6px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+  .search-hint{font-size:11px; color:var(--text-faint); margin-bottom:18px; font-family:var(--mono);}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--bg); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s;}
+
+  .chapters{list-style:none; padding:0; margin:0 0 20px;}
+  .chapters li{margin-bottom:2px;}
+  .chapters a{
+    display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text-dim);
+    font-size:13px; padding:7px 8px; border-radius:var(--radius);
+  }
+  .chapters a.active, .chapters li.current a{color:var(--accent); background:var(--surface-alt);}
+  .chapters .chnum{font-family:var(--mono); color:var(--text-faint); font-size:11px; width:18px; flex-shrink:0;}
+  .chapters li.current .chnum{color:var(--accent);}
+  .chapters .soon{font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-left:auto;}
+  .chapters .done-tag{font-size:10px; color:var(--green); font-family:var(--mono); margin-left:auto;}
+
+  .toc{list-style:none; padding:0; margin:0;}
+  .toc-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .toc li a{
+    display:block; text-decoration:none; color:var(--text-dim); font-size:12.5px; padding:5px 8px 5px 20px;
+    border-left:2px solid transparent; border-radius:0 4px 4px 0;
+  }
+  .toc li a:hover{color:var(--text);}
+  .toc li a.done{color:var(--green);}
+  .toc li a.done::before{content:"✓ "; color:var(--green);}
+
+  .hero{
+    padding:56px 48px 40px; border-bottom:1px solid var(--border);
+    background: radial-gradient(600px 200px at 85% -20%, rgba(227,179,65,0.08), transparent);
+  }
+  .hero-eyebrow{font-family:var(--mono); color:var(--text-faint); font-size:12px; margin-bottom:10px;}
+  #typed{font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:18px; min-height:18px;}
+  #typed::after{content:"█"; animation:blink 1s step-start infinite; color:var(--accent);}
+  @keyframes blink{50%{opacity:0;}}
+  .hero h1{font-family:var(--mono); font-size:clamp(28px,4vw,42px); margin:0 0 14px; color:#fff; line-height:1.25;}
+  .hero p{color:var(--text-dim); max-width:680px; font-size:15px;}
+  .hero-stats{display:flex; gap:28px; margin-top:26px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono);}
+  .stat b{color:var(--accent); font-size:20px; display:block;}
+  .stat span{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .content{padding:8px 48px 80px; max-width:920px;}
+  section.topic{border-bottom:1px solid var(--border); padding:36px 0;}
+  section.topic:first-of-type{padding-top:28px;}
+
+  .topic-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px;}
+  .topic-head h2{font-family:var(--mono); font-size:22px; color:#fff; margin:0; display:flex; align-items:center; gap:10px;}
+  .topic-head h2 .tagnum{color:var(--accent);}
+  .topic-controls{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .diff{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;}
+  .diff.mid{color:var(--accent); border-color:var(--accent-dim);}
+  .diff.senior{color:var(--red); border-color:#5a3229;}
+  .star-btn, .check-btn{
+    background:none; border:1px solid var(--border); color:var(--text-faint); cursor:pointer;
+    border-radius:5px; padding:5px 8px; font-size:14px; line-height:1;
+  }
+  .star-btn.active{color:var(--accent); border-color:var(--accent-dim);}
+  .check-btn.active{color:var(--green); border-color:#2c5a41;}
+
+  .subhead{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin:22px 0 8px;}
+  .subhead.mistakes{color:var(--red);}
+  .subhead.best{color:var(--green);}
+  .topic p{margin:0 0 10px; color:var(--text);}
+  .topic ul{margin:6px 0 10px; padding-left:20px;}
+  .topic li{margin-bottom:5px; color:var(--text);}
+
+  pre{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; font-size:12.8px; position:relative; margin:10px 0;
+  }
+  pre code{background:none; padding:0; color:var(--text);}
+  .kw{color:#c586c0;} .str{color:var(--green);} .cmt{color:var(--text-faint); font-style:italic;} .fn{color:#5fb3d3;} .num{color:#e3b341;} .var{color:#9cdcfe;} .tag{color:#e8735c;}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-dim); font-family:var(--mono); font-size:10.5px; padding:4px 8px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);}
+
+  .callout{border-left:3px solid var(--accent); background:var(--surface); padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim);}
+  .followups{list-style:none; padding:0; margin:8px 0;}
+  .followups li{ font-size:13.5px; color:var(--text-dim); padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border); }
+  .followups li::before{content:"↳"; position:absolute; left:0; color:var(--text-faint);}
+  .followups li:last-child{border-bottom:none;}
+
+  .rapid-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 32px;}
+  @media (max-width:700px){.rapid-grid{grid-template-columns:1fr;}}
+  details.qa{border-bottom:1px solid var(--border); padding:10px 0;}
+  details.qa summary{cursor:pointer; color:var(--text); font-size:13.5px; list-style:none; display:flex; gap:8px;}
+  details.qa summary::before{content:"▸"; color:var(--accent); flex-shrink:0;}
+  details.qa[open] summary::before{content:"▾";}
+  details.qa summary::-webkit-details-marker{display:none;}
+  details.qa .ans{padding:8px 0 0 18px; color:var(--text-dim); font-size:13px;}
+
+  .part-footer{
+    padding:50px 48px; border-top:1px solid var(--border); background:var(--surface);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .part-footer .next{font-family:var(--mono); color:var(--text-dim); font-size:13px;}
+  .part-footer .next b{color:var(--accent); display:block; font-size:15px; margin-bottom:4px;}
+  .kbd{font-family:var(--mono); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--text-dim);}
+
+  .cheatsheet{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:22px 26px; margin:20px 0;}
+  .cheatsheet table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cheatsheet th{text-align:left; font-family:var(--mono); color:var(--text-faint); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);}
+  .cheatsheet td{padding:7px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); vertical-align:top;}
+  .cheatsheet td:first-child{color:var(--accent); font-family:var(--mono); white-space:nowrap;}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="brand">$ interview-prep --guide</div>
+    <div class="brand-title">Full-Stack Interview Handbook</div>
+
+    <input type="text" id="search" placeholder="/ search this chapter…" autocomplete="off">
+    <div class="search-hint">press <span class="kbd">/</span> to focus · <span class="kbd">esc</span> to clear</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>CH.2 PROGRESS</span><span id="progress-text">0 / 10</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <ul class="chapters">
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">01</span> JavaScript + DOM <span class="done-tag">done</span></a></li>
+      <li class="current"><a href="#top"><span class="chnum">02</span> React + Next.js</a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">03</span> Node.js + Backend Design <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">04</span> PHP + Laravel <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">05</span> Database + SQL <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">06</span> System Design <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">07</span> HR + Project Stories <span class="soon">soon</span></a></li>
+    </ul>
+
+    <div class="toc-title">On this page</div>
+    <ul class="toc" id="toc"></ul>
+
+    <div class="toc-title">Bookmarks</div>
+    <ul class="toc" id="bookmark-list"><li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li></ul>
+  </aside>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="hero-eyebrow">CHAPTER 2 OF 7 · UI LAYER</div>
+      <div id="typed"></div>
+      <h1>React &amp; Next.js,<br>from Virtual DOM internals to App Router data flow</h1>
+      <p>Ten core topics — reconciliation &amp; JSX, props/state/controlled components, core hooks, performance hooks &amp; re-render optimization, custom hooks &amp; Context, keys &amp; list rendering, error boundaries &amp; Suspense, Next.js rendering strategies (SSR/SSG/ISR/CSR), the App Router's Server/Client Component split, and middleware/auth/metadata — same depth as the earlier chapters. Then 25 rapid-fire questions and a cheat sheet.</p>
+      <div class="hero-stats">
+        <div class="stat"><b>10</b><span>Deep Topics</span></div>
+        <div class="stat"><b>25</b><span>Rapid Fire Q&amp;A</span></div>
+        <div class="stat"><b>30+</b><span>Code Examples</span></div>
+        <div class="stat"><b>2</b><span>Chapters Remaining</span></div>
+      </div>
+    </section>
+
+    <div class="content">
+
+      <!-- ============ TOPIC 1 ============ -->
+      <section class="topic" data-topic="1" id="t1">
+        <div class="topic-head">
+          <h2><span class="tagnum">01.</span> Virtual DOM, Reconciliation &amp; JSX</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="1">☆</button>
+            <button class="check-btn" data-ck="1">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> JSX is syntax sugar that compiles to <code>React.createElement()</code> calls, producing plain JS objects that describe UI — not actual DOM nodes. The <strong>Virtual DOM</strong> is React's lightweight in-memory representation of that tree. On every state change, React builds a new virtual tree and runs <strong>reconciliation</strong> — a diffing algorithm comparing the new tree to the previous one — to compute the minimal set of real DOM mutations needed, then applies just those, rather than re-rendering the entire page. Reconciliation relies on heuristics for speed: elements of a different type at the same position are assumed entirely different (old subtree torn down, new one built), and lists rely on the <code>key</code> prop to match elements across renders instead of comparing by position alone.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is the conceptual foundation for almost every React performance question that follows — re-renders, keys, memoization all only make sense once you understand what reconciliation is actually doing and why it needs help identifying what changed.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Understanding that changing an element's type (say, swapping a <code>&lt;div&gt;</code> wrapper for a <code>&lt;section&gt;</code> conditionally) causes React to tear down and rebuild the entire subtree — including losing all component state and re-running effects inside it — explains a real, easy-to-miss bug class where conditionally swapping wrapper elements silently resets form input state.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Believing the Virtual DOM makes React "fast" in some absolute sense — it doesn't skip work by magic, it minimizes and batches real DOM mutations, which are the genuinely expensive operation.</li>
+          <li>Not realizing that changing a component's position in the tree (or its type) can unmount and remount it entirely, resetting local state and re-triggering effects.</li>
+          <li>Thinking JSX is HTML — it's syntax that compiles to function calls, which is why expressions need <code>{}</code> and why certain HTML attributes (like <code>class</code> → <code>className</code>) differ.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"JSX compiles down to React.createElement calls that build a lightweight object tree — the virtual DOM — rather than touching the real DOM directly. When state changes, React builds a new virtual tree and diffs it against the previous one during reconciliation, computing the minimal real DOM changes needed and batching them. The part people miss is that this diffing relies on heuristics — same position, same type is assumed to be the same logical element and gets updated in place; a different type at that position tears the whole subtree down and rebuilds it, which is why conditionally swapping a wrapper element can silently reset child state."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What happens to a component's local state if its type changes at the same tree position?</li>
+          <li>Why does React need a diffing algorithm at all instead of just re-rendering everything to the real DOM?</li>
+          <li>Is JSX required to use React? What does it compile to?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// JSX...</span>
+<span class="kw">const</span> element = <span class="tag">&lt;h1</span> className=<span class="str">"title"</span><span class="tag">&gt;</span>Hello, {name}<span class="tag">&lt;/h1&gt;</span>;
+
+<span class="cmt">// ...compiles to this (roughly)</span>
+<span class="kw">const</span> element = React.<span class="fn">createElement</span>(<span class="str">'h1'</span>, { className: <span class="str">'title'</span> }, <span class="str">'Hello, '</span>, name);
+
+<span class="cmt">// Type change at the same position tears down + rebuilds the subtree,
+// losing all state and effects inside it — a real, surprising bug source</span>
+{ isEditing ? <span class="tag">&lt;input</span> value={text} <span class="tag">/&gt;</span> : <span class="tag">&lt;div&gt;</span>{text}<span class="tag">&lt;/div&gt;</span> }</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Keep the same element type across conditional renders when you want to preserve internal state — vary content, not structure, where possible.</li>
+          <li>Remember the virtual DOM's job is minimizing real DOM writes — it doesn't make expensive render logic itself free; that's what memoization solves separately.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 2 ============ -->
+      <section class="topic" data-topic="2" id="t2">
+        <div class="topic-head">
+          <h2><span class="tagnum">02.</span> Props, State &amp; Controlled vs Uncontrolled Components</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="2">☆</button>
+            <button class="check-btn" data-ck="2">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Props</strong> are read-only data passed down from a parent — a component must never mutate its own props. <strong>State</strong> is data owned and managed internally by a component (via <code>useState</code>/<code>useReducer</code>) that can change over time and triggers a re-render when it does. A <strong>controlled component</strong> has its value driven entirely by React state — the input's <code>value</code> comes from state and every change goes through an <code>onChange</code> handler that updates that state, making React the single source of truth. An <strong>uncontrolled component</strong> lets the DOM itself hold the current value, accessed on demand via a <code>ref</code> instead of tracked on every keystroke — simpler for a case like a one-time file upload or a form you only read on submit.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Forms are one of the most common real UI patterns, and this distinction directly determines architecture — get it wrong and you either fight React's rendering model (uncontrolled input trying to sync to state) or add unnecessary re-renders and complexity (controlling every field when you only needed the value on submit).</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A multi-step booking form with live validation (checking availability as the user types dates) needs controlled inputs so every keystroke is available to validate and drive UI feedback immediately, while a simple file upload field in that same form is a natural fit for an uncontrolled ref-based input, since you typically only need its value at submit time, not on every change.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Directly mutating a prop or an object/array received as a prop, which can cause bugs since the parent's state changes underneath it without a proper re-render being triggered through React's data flow.</li>
+          <li>Mixing controlled and uncontrolled on the same input — setting a <code>value</code> without an <code>onChange</code> handler makes React log a warning and effectively locks the field (or throws it into an inconsistent state).</li>
+          <li>Making every field controlled by default even when the value is only needed once, adding unnecessary re-renders on every keystroke for no real benefit.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Props flow down and are read-only — a component should never mutate them, only its parent controls that data. State is owned locally and its changes are what actually drive re-renders. For forms specifically, I go controlled when I need the current value on every change — live validation, conditional fields, character counts — and uncontrolled with a ref when I genuinely only need the value once, like on submit, since that avoids a re-render per keystroke for data nobody's reading in between."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What warning does React give if you set a value prop on an input with no onChange handler, and why?</li>
+          <li>Can a component modify a prop it receives? What happens if you try?</li>
+          <li>When would you deliberately choose an uncontrolled input over a controlled one?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Controlled — React state is the single source of truth</span>
+<span class="kw">function</span> <span class="fn">ControlledInput</span>() {
+  <span class="kw">const</span> [value, setValue] = <span class="fn">useState</span>(<span class="str">''</span>);
+  <span class="kw">return</span> <span class="tag">&lt;input</span> value={value} onChange={e => <span class="fn">setValue</span>(e.target.value)} <span class="tag">/&gt;</span>;
+}
+
+<span class="cmt">// Uncontrolled — DOM holds the value, read via ref only when needed</span>
+<span class="kw">function</span> <span class="fn">UncontrolledInput</span>() {
+  <span class="kw">const</span> inputRef = <span class="fn">useRef</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = () => <span class="kw">console</span>.<span class="fn">log</span>(inputRef.current.value);
+  <span class="kw">return</span> <span class="tag">&lt;input</span> ref={inputRef} defaultValue=<span class="str">""</span> <span class="tag">/&gt;</span>;
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Never mutate props — always work with a local copy or lift the change up via a callback prop.</li>
+          <li>Reach for uncontrolled + refs for simple, submit-only fields; controlled for anything needing live reaction to every change.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 3 ============ -->
+      <section class="topic" data-topic="3" id="t3">
+        <div class="topic-head">
+          <h2><span class="tagnum">03.</span> Core Hooks: useState, useEffect, useRef, useReducer</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="3">☆</button>
+            <button class="check-btn" data-ck="3">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <code>useState</code> holds a piece of local state and a setter that schedules a re-render; state updates within the same event handler are batched and setter calls using the previous value should use the functional form (<code>setCount(c => c + 1)</code>) to avoid stale-closure bugs. <code>useEffect</code> runs side effects (data fetching, subscriptions, manual DOM work) after render, re-running whenever its dependency array changes — an empty array means "once, on mount," no array means "every render," and the returned function is cleanup, run before the next effect and on unmount. <code>useRef</code> holds a mutable value that persists across renders <em>without</em> triggering a re-render when it changes — used for DOM references or any "instance variable" that shouldn't cause a render. <code>useReducer</code> is <code>useState</code>'s more structured sibling for complex state logic, following the reducer pattern (state + action → new state), useful when multiple sub-values update together or the next state depends heavily on the action type.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Hooks are the daily bread-and-butter of modern React, and the dependency array specifically is the single most common source of real, subtle React bugs — stale closures, infinite loops, missing cleanup — so fluency here is non-negotiable for any React role.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Fetching booking availability when a selected date changes is a <code>useEffect</code> with <code>[selectedDate]</code> as its dependency, with a cleanup function that ignores a stale in-flight response if the date changes again before the first request resolves — a real race-condition bug that shows up constantly in date-picker-driven UIs without that cleanup.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Omitting a value used inside <code>useEffect</code> from its dependency array — causes the effect to run with a stale closure over an old value, a very common real bug (and what the exhaustive-deps ESLint rule exists to catch).</li>
+          <li>Not cleaning up subscriptions/async requests in <code>useEffect</code>'s cleanup function, causing state updates on an unmounted component or race conditions between overlapping requests.</li>
+          <li>Using <code>useState</code>'s previous value directly (<code>setCount(count + 1)</code>) instead of the functional form inside rapid or batched updates, leading to lost updates.</li>
+          <li>Reaching for <code>useRef</code> to store a value and expecting the UI to update when it changes — refs don't trigger re-renders by design.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The dependency array is where most real useEffect bugs live — I treat the exhaustive-deps lint rule as a signal, not noise, because omitting a value almost always means the effect is closing over a stale version of it. For anything async inside an effect — a fetch tied to a changing prop like a selected date — I always return a cleanup function that can ignore a stale response, otherwise a fast-changing input can cause an old request to resolve after a newer one and overwrite the correct state. I use useReducer over useState once I have several related pieces of state that update together based on distinct actions — it keeps that logic in one place instead of scattered across multiple setState calls."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's a stale closure in the context of useEffect, and how do you avoid it?</li>
+          <li>Why would you use the functional form of a useState setter instead of referencing state directly?</li>
+          <li>When would you reach for useReducer instead of several useState calls?</li>
+        </ul>
+
+        <pre><code><span class="fn">useEffect</span>(() => {
+  <span class="kw">let</span> cancelled = <span class="kw">false</span>;
+  <span class="fn">fetchAvailability</span>(selectedDate).<span class="fn">then</span>(data => {
+    <span class="kw">if</span> (!cancelled) <span class="fn">setAvailability</span>(data); <span class="cmt">// ignore stale response if date changed again</span>
+  });
+  <span class="kw">return</span> () => { cancelled = <span class="kw">true</span>; }; <span class="cmt">// cleanup — runs before next effect / on unmount</span>
+}, [selectedDate]);
+
+<span class="cmt">// Functional setState form avoids stale-closure bugs in rapid updates</span>
+<span class="fn">setCount</span>(prevCount => prevCount + <span class="num">1</span>);
+
+<span class="cmt">// useReducer for related state that updates together via distinct actions</span>
+<span class="kw">function</span> <span class="fn">bookingReducer</span>(state, action) {
+  <span class="kw">switch</span> (action.type) {
+    <span class="kw">case</span> <span class="str">'SET_DATE'</span>: <span class="kw">return</span> { ...state, date: action.payload, error: <span class="kw">null</span> };
+    <span class="kw">case</span> <span class="str">'SET_ERROR'</span>: <span class="kw">return</span> { ...state, error: action.payload };
+    <span class="kw">default</span>: <span class="kw">return</span> state;
+  }
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Trust the exhaustive-deps ESLint rule; if you're tempted to disable it, that's usually a sign the effect should be restructured, not a sign the rule is wrong.</li>
+          <li>Always clean up subscriptions/timers/in-flight-request tracking in useEffect's return function.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 4 ============ -->
+      <section class="topic" data-topic="4" id="t4">
+        <div class="topic-head">
+          <h2><span class="tagnum">04.</span> useMemo, useCallback &amp; Re-render Optimization</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="4">☆</button>
+            <button class="check-btn" data-ck="4">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A component re-renders when its own state changes, its parent re-renders (by default — children re-render whenever the parent does, regardless of whether their own props changed), or its context value changes. <code>useMemo</code> caches the <em>result</em> of an expensive computation between renders, only recomputing when its dependencies change. <code>useCallback</code> caches a <em>function reference</em> itself, which matters because a new function is created on every render by default — passing a fresh function reference as a prop to a memoized child defeats that memoization, since <code>React.memo</code>'s shallow comparison sees a "new" prop every time even if the function's logic is identical. <code>React.memo</code> wraps a component so it skips re-rendering if its props are shallowly equal to the previous render.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Misusing (or under-using) these hooks is extremely common — either wrapping everything in <code>useMemo</code>/<code>useCallback</code> "for performance" with no measured need, adding complexity and its own overhead for nothing, or missing them where they genuinely matter and shipping a visibly janky UI on a large list or expensive computation.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A camp search results page filtering/sorting a large in-memory list on every keystroke of a search box is a legitimate <code>useMemo</code> case — recomputing the filtered+sorted list only when the search term or source data actually changes, not on every unrelated re-render of the parent (like a sidebar count updating).</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Wrapping cheap computations or trivial functions in <code>useMemo</code>/<code>useCallback</code> "just in case" — the memoization machinery itself has a cost, and for cheap operations it's a net loss, not a win.</li>
+          <li>Memoizing a component with <code>React.memo</code> but still passing it a new object/array/function literal as a prop on every render, silently defeating the memoization since shallow comparison sees a new reference each time.</li>
+          <li>Treating memoization as a default habit instead of a response to a measured, real performance problem — usually found via the React DevTools Profiler, not guessed at.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I don't reach for useMemo or useCallback by default — I profile first with React DevTools and only optimize a re-render that's actually shown up as a real problem, usually an expensive computation over a large list or a component that's visibly janky. When I do use them, the thing I watch for is that they only pay off together — memoizing a child with React.memo does nothing if the parent keeps passing it a brand-new function or object reference every render, so useCallback and useMemo on the parent side are what actually make that memoization stick."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why would wrapping a child in React.memo sometimes have zero effect on preventing re-renders?</li>
+          <li>When is useMemo actually a performance loss rather than a gain?</li>
+          <li>How would you find out whether a component's re-renders are actually a real performance problem?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// useMemo — only recompute the filtered list when term or camps actually change</span>
+<span class="kw">const</span> filteredCamps = <span class="fn">useMemo</span>(
+  () => camps.<span class="fn">filter</span>(c => c.name.<span class="fn">includes</span>(searchTerm)),
+  [camps, searchTerm]
+);
+
+<span class="cmt">// Without useCallback, this new function reference on every render
+// defeats React.memo on <CampCard />, causing it to re-render anyway</span>
+<span class="kw">const</span> <span class="fn">handleSelect</span> = <span class="fn">useCallback</span>(
+  (id) => <span class="fn">setSelectedId</span>(id),
+  [] <span class="cmt">// stable reference across renders</span>
+);
+
+<span class="kw">const</span> CampCard = React.<span class="fn">memo</span>(<span class="kw">function</span> <span class="fn">CampCard</span>({ camp, onSelect }) {
+  <span class="kw">return</span> <span class="tag">&lt;div</span> onClick={() => <span class="fn">onSelect</span>(camp.id)}<span class="tag">&gt;</span>{camp.name}<span class="tag">&lt;/div&gt;</span>;
+});</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Profile before optimizing — treat useMemo/useCallback as a targeted fix, not a default habit.</li>
+          <li>When memoizing a child component, memoize the props you pass it too — object/array/function literals need useMemo/useCallback on the parent side to actually stay stable.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 5 ============ -->
+      <section class="topic" data-topic="5" id="t5">
+        <div class="topic-head">
+          <h2><span class="tagnum">05.</span> Custom Hooks &amp; Context API</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="5">☆</button>
+            <button class="check-btn" data-ck="5">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>custom hook</strong> is just a regular function whose name starts with <code>use</code> that calls other hooks internally — it's React's mechanism for extracting and reusing stateful logic across components without changing the component tree (unlike the older render-props or higher-order-component patterns). The <strong>Context API</strong> solves prop drilling — passing a value through many intermediate components that don't need it — by letting a <code>Provider</code> make a value available to any descendant that calls <code>useContext</code>, no matter how deep. The trade-off: <em>any</em> component consuming a context re-renders whenever that context's value changes, even if the specific field it reads didn't change — which is why Context isn't a full replacement for a proper state management solution in a large, frequently-updating app.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Extracting logic into custom hooks is the primary way experienced React developers keep components clean and testable, and understanding Context's re-render trade-off signals whether you can make an informed architectural call between Context, prop drilling, and a dedicated state library rather than reaching for Context by default.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A <code>useDebounce</code> or <code>useAvailability(campId, date)</code> custom hook wrapping the fetch/loading/error logic for checking camp availability is directly reusable across a search page, a booking form, and a calendar view — without copy-pasting the same <code>useEffect</code>/<code>useState</code> logic three times.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Putting a frequently-changing value (like real-time form input) in Context, causing every consumer anywhere in the tree to re-render on every keystroke.</li>
+          <li>Reaching for Context as a general-purpose global state manager for everything, when a large, frequently-updating piece of state is usually better served by a dedicated library (or splitting into multiple smaller, more targeted contexts).</li>
+          <li>Calling hooks conditionally or inside loops — breaks React's reliance on stable hook call order between renders (the Rules of Hooks).</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I reach for a custom hook the moment I see the same stateful logic — a fetch-with-loading-and-error pattern, a subscription, a debounce — duplicated across two or more components; it's just a function that calls other hooks, so it composes cleanly without adding to the component tree the way older patterns like HOCs did. For Context, I'm deliberate about what goes in it, because every consumer re-renders on any change to the context value — so I keep frequently-changing state out of Context, or split large context objects into smaller, more targeted ones so an update to one slice doesn't re-render every consumer of the whole thing."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Write a custom hook that debounces a value.</li>
+          <li>Why does every Context consumer re-render on any change to the context value, even unrelated fields?</li>
+          <li>What are the Rules of Hooks, and why do they exist?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Custom hook — reusable fetch-with-status logic</span>
+<span class="kw">function</span> <span class="fn">useAvailability</span>(campId, date) {
+  <span class="kw">const</span> [data, setData] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [loading, setLoading] = <span class="fn">useState</span>(<span class="kw">true</span>);
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">let</span> cancelled = <span class="kw">false</span>;
+    <span class="fn">setLoading</span>(<span class="kw">true</span>);
+    <span class="fn">fetchAvailability</span>(campId, date).<span class="fn">then</span>(result => {
+      <span class="kw">if</span> (!cancelled) { <span class="fn">setData</span>(result); <span class="fn">setLoading</span>(<span class="kw">false</span>); }
+    });
+    <span class="kw">return</span> () => { cancelled = <span class="kw">true</span>; };
+  }, [campId, date]);
+
+  <span class="kw">return</span> { data, loading };
+}
+
+<span class="cmt">// Usage — identical logic, reused across 3 different components</span>
+<span class="kw">const</span> { data, loading } = <span class="fn">useAvailability</span>(campId, selectedDate);</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Extract duplicated stateful logic into a custom hook as soon as it appears in a second component.</li>
+          <li>Split large context objects into smaller, purpose-specific contexts to limit unnecessary re-renders.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 6 ============ -->
+      <section class="topic" data-topic="6" id="t6">
+        <div class="topic-head">
+          <h2><span class="tagnum">06.</span> Keys, Lists &amp; Component Rendering Behavior</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="6">☆</button>
+            <button class="check-btn" data-ck="6">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> When rendering a list, the <code>key</code> prop tells React which array item corresponds to which rendered element across renders, so it can correctly match, reorder, insert, or remove elements instead of guessing by position. Using the array index as a key works fine for a static list that never reorders, but breaks down the moment items can be added, removed, or reordered — because the index-to-item mapping shifts, React can misattribute internal state (like an input's typed value) to the wrong logical item after a reorder. A stable, unique identifier (a database ID, not the array index) keeps that mapping correct regardless of how the list changes.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>The index-as-key bug is one of the most common, subtle React bugs in real codebases — it doesn't throw an error, it just silently produces wrong behavior (state attached to the wrong row) that's easy to miss in casual testing and only shows up once a user actually reorders or deletes something.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A list of editable booking line items where each row has its own local input state (like a quantity field) — using index as key means deleting the second row shifts every subsequent row's index down by one, and React reuses each row's existing DOM/state at that shifted index, silently showing the wrong quantity value on the wrong camp/item.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using array index as key on any list that can reorder, filter, or have items inserted/removed — the single most common key-related bug.</li>
+          <li>Using a non-unique or non-stable value as a key (like the item's display name, which could repeat or change) instead of a genuinely stable unique ID.</li>
+          <li>Generating a new key on every render (like <code>Math.random()</code> or a fresh object per render) — defeats the entire purpose of keys, since nothing is stable across renders anymore, forcing React to tear down and rebuild every item every time.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Keys are how React matches array items across renders instead of assuming position means identity. Index-as-key works fine for a genuinely static list, but the moment items can be reordered, inserted, or removed, the index-to-item mapping shifts and React can attach the wrong internal state — like a typed input value — to what's now a different logical item at that index. I always use a stable, unique identifier from the actual data, like a database ID, specifically so reordering or deleting an item doesn't corrupt state on the rows that didn't move."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Walk through exactly what goes wrong if you delete the 2nd item from a 5-item list keyed by index, where each item has its own input state.</li>
+          <li>Is it ever actually fine to use index as key? When?</li>
+          <li>What happens if you don't provide a key prop at all on a list?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Risky: index as key on a list that can reorder/delete</span>
+{items.<span class="fn">map</span>((item, index) => <span class="tag">&lt;BookingRow</span> key={index} item={item} <span class="tag">/&gt;</span>)}
+
+<span class="cmt">// Correct: stable unique ID from the data itself</span>
+{items.<span class="fn">map</span>(item => <span class="tag">&lt;BookingRow</span> key={item.id} item={item} <span class="tag">/&gt;</span>)}
+
+<span class="cmt">// Index-as-key is fine ONLY when the list is guaranteed static —
+// no reordering, no insertion/removal, no filtering, ever</span>
+{[<span class="str">'Mon'</span>, <span class="str">'Tue'</span>, <span class="str">'Wed'</span>].<span class="fn">map</span>((day, i) => <span class="tag">&lt;span</span> key={i}<span class="tag">&gt;</span>{day}<span class="tag">&lt;/span&gt;</span>)}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Default to a stable unique ID from the data as the key; only use index for genuinely static, never-reordered lists.</li>
+          <li>Never generate a new key value on every render — that defeats the purpose entirely.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 7 ============ -->
+      <section class="topic" data-topic="7" id="t7">
+        <div class="topic-head">
+          <h2><span class="tagnum">07.</span> Error Boundaries, Suspense &amp; Lazy Loading</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="7">☆</button>
+            <button class="check-btn" data-ck="7">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> An <strong>Error Boundary</strong> is a class component (no hook equivalent exists as of stable React) implementing <code>componentDidCatch</code>/<code>getDerivedStateFromError</code> that catches JavaScript errors thrown anywhere in its child tree during rendering, preventing one broken component from crashing the entire app — it renders a fallback UI instead. It does <em>not</em> catch errors in event handlers, async code, or server-side rendering — those need regular try/catch. <code>React.lazy()</code> + dynamic <code>import()</code> code-splits a component so its bundle is only fetched when actually needed, paired with <strong>Suspense</strong>, which shows a fallback UI while the lazy component (or, in newer React/Next.js, any async data-fetching boundary) is loading.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Production apps need graceful degradation — one buggy widget shouldn't take down an entire page — and code-splitting is a direct, measurable lever on initial load performance, so both are practical, "have you shipped a real app" signals rather than academic ones.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Wrapping a third-party embed (like a map or a payment widget) in its own Error Boundary means a failure in that specific integration shows a contained fallback instead of white-screening the entire booking page — genuinely important when depending on external, less-controllable code. Lazy-loading a heavy admin dashboard route that most users never visit keeps it out of the main bundle entirely.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Expecting an Error Boundary to catch an error thrown inside an <code>onClick</code> handler or inside a <code>.then()</code> — it only catches errors during rendering/lifecycle methods/constructors of its children, not async or event-handler code.</li>
+          <li>Putting a single Error Boundary around the entire app with no finer granularity, so any error anywhere blanks the whole page instead of isolating the failure to the actual broken widget.</li>
+          <li>Lazy-loading components that are needed immediately on initial render, adding an unnecessary loading flash for no bundle-size benefit.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I place Error Boundaries around specific, isolated units — especially anything depending on a third-party integration or a feature that's genuinely optional to the rest of the page — rather than one boundary around the whole app, so a failure stays contained to that widget instead of blanking everything. The scope people get wrong is thinking it catches everything; it only catches errors during rendering in its child tree, not inside event handlers or promises, which still need their own try/catch. For lazy loading, I only split out things that aren't needed on initial render — a heavy route most users don't visit, a modal's content — since splitting something needed immediately just adds a loading flash with no real benefit."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Does an Error Boundary catch an error thrown inside a button's onClick handler? Why or why not?</li>
+          <li>Why is there no hook equivalent for Error Boundaries?</li>
+          <li>What's the difference between Suspense for lazy-loaded components and Suspense for data fetching?</li>
+        </ul>
+
+        <pre><code><span class="kw">class</span> <span class="fn">ErrorBoundary</span> <span class="kw">extends</span> React.Component {
+  state = { hasError: <span class="kw">false</span> };
+  <span class="kw">static</span> <span class="fn">getDerivedStateFromError</span>() { <span class="kw">return</span> { hasError: <span class="kw">true</span> }; }
+  <span class="fn">componentDidCatch</span>(error, info) { <span class="fn">logToService</span>(error, info); }
+  <span class="fn">render</span>() {
+    <span class="kw">if</span> (<span class="kw">this</span>.state.hasError) <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Something went wrong loading this section.<span class="tag">&lt;/p&gt;</span>;
+    <span class="kw">return</span> <span class="kw">this</span>.props.children;
+  }
+}
+
+<span class="cmt">// Isolate a risky third-party widget instead of one app-wide boundary</span>
+<span class="tag">&lt;ErrorBoundary&gt;</span>
+  <span class="tag">&lt;PaymentWidget</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/ErrorBoundary&gt;</span>
+
+<span class="cmt">// Code-splitting a rarely-used route</span>
+<span class="kw">const</span> AdminDashboard = React.<span class="fn">lazy</span>(() => <span class="fn">import</span>(<span class="str">'./AdminDashboard'</span>));
+
+<span class="tag">&lt;Suspense</span> fallback={<span class="tag">&lt;Spinner</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+  <span class="tag">&lt;AdminDashboard</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/Suspense&gt;</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Scope Error Boundaries to isolated, meaningful sections — especially third-party or genuinely optional widgets — not just one boundary for the whole app.</li>
+          <li>Only lazy-load what isn't needed on initial render; measure with a bundle analyzer rather than splitting everything by default.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 8 ============ -->
+      <section class="topic" data-topic="8" id="t8">
+        <div class="topic-head">
+          <h2><span class="tagnum">08.</span> Next.js Rendering Strategies: SSR, SSG, ISR, CSR</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="8">☆</button>
+            <button class="check-btn" data-ck="8">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>CSR</strong> (Client-Side Rendering) ships a near-empty HTML shell and lets the browser fetch JS and render everything — fast to serve, slow to first meaningful paint, poor for SEO without extra work. <strong>SSR</strong> (Server-Side Rendering) generates the full HTML on the server for every request — good SEO and fast first paint, but adds server load and latency per request since it's redone every time. <strong>SSG</strong> (Static Site Generation) generates the HTML once at build time — extremely fast to serve (often from a CDN) and cheap on infrastructure, but the content is frozen until the next build/deploy. <strong>ISR</strong> (Incremental Static Regeneration) is the middle ground: pages are statically generated but automatically regenerated in the background after a configured time interval (or on-demand), so you get static-speed serving with content that doesn't go permanently stale.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Choosing the right rendering strategy per page/route is one of the most consequential real architectural decisions in a Next.js app, directly trading off SEO, performance, infrastructure cost, and content freshness — and picking wrong (SSR everywhere, or SSG for genuinely dynamic content) is a common, costly mistake.</p>
+
+        <div class="subhead real-world">Real-world use case</div>
+        <p>A camp listing/detail page is a strong ISR candidate — content changes occasionally (new bookings affect availability, a description gets edited) but not on every single request, so serving a statically-cached page that regenerates every 60 seconds gives near-static speed without showing hours-old, wrong availability data. A user's personal booking dashboard, by contrast, is genuinely per-user and needs SSR (or client-side fetching) since it can't be shared across visitors as a static page at all.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using SSR by default for every page "to be safe," adding unnecessary server load and latency to pages that are actually the same for every visitor and could be statically generated instead.</li>
+          <li>Using SSG for content that changes frequently or is per-user, serving stale or completely wrong data until the next build.</li>
+          <li>Not understanding that ISR's staleness window means the very first request after the revalidation period can still briefly serve the old cached version while regeneration happens in the background (stale-while-revalidate behavior) — not an instant global update.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I pick the rendering strategy per route based on how often the content changes and whether it's shared across users. Fully static marketing pages get SSG. Something like a camp listing page — public, cacheable, but not frozen forever — is a strong ISR candidate, since it serves at static speed but regenerates on an interval so availability data doesn't go stale for hours. Genuinely per-user content, like a personal booking dashboard, can't be a shared static page at all, so that's SSR or client-side fetched. The mistake I actively avoid is defaulting to SSR everywhere just because it feels 'safest' — it adds real per-request server cost and latency that most pages don't actually need."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Which rendering strategy would you pick for a public blog vs a user's private dashboard vs a product listing page, and why?</li>
+          <li>What actually happens on the first request after an ISR page's revalidation window expires?</li>
+          <li>What are the SEO implications of pure CSR, and how would you mitigate them?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// App Router: SSG by default for a route with no dynamic data functions</span>
+<span class="kw">export</span> <span class="kw">default</span> <span class="kw">function</span> <span class="fn">CampsPage</span>() { <span class="cmt">/* statically generated at build time */</span> }
+
+<span class="cmt">// ISR: revalidate this route's cached data at most every 60 seconds</span>
+<span class="kw">export</span> <span class="kw">const</span> revalidate = <span class="num">60</span>;
+
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">getCamp</span>(id) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`https://api.example.com/camps/${id}`</span>, {
+    next: { revalidate: <span class="num">60</span> } <span class="cmt">// per-fetch ISR configuration</span>
+  });
+  <span class="kw">return</span> res.<span class="fn">json</span>();
+}
+
+<span class="cmt">// SSR: force fresh data on every single request — no caching</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">getUserBookings</span>(userId) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`https://api.example.com/users/${userId}/bookings`</span>, {
+    cache: <span class="str">'no-store'</span>
+  });
+  <span class="kw">return</span> res.<span class="fn">json</span>();
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Choose per-route based on actual data volatility and whether content is shared or per-user — not a single blanket strategy for the whole app.</li>
+          <li>Use ISR for public, cacheable, occasionally-changing content as the default middle ground before reaching for full SSR.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 9 ============ -->
+      <section class="topic" data-topic="9" id="t9">
+        <div class="topic-head">
+          <h2><span class="tagnum">09.</span> App Router: Server vs Client Components, Data Fetching &amp; Caching</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="9">☆</button>
+            <button class="check-btn" data-ck="9">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> In the App Router, every component is a <strong>Server Component</strong> by default — it renders on the server, ships zero JS to the client for that component, and can directly <code>await</code> data (database calls, file system, internal APIs) without a separate API route or client-side fetch. Adding <code>'use client'</code> at the top of a file opts that component (and everything it imports) into being a <strong>Client Component</strong> — needed for interactivity (<code>onClick</code>, state, effects, browser-only APIs). The practical rule: keep components server-rendered by default, and push <code>'use client'</code> as far down the tree as possible, wrapping only the actually-interactive leaf components, so the bulk of the page ships no JS. Next.js extends the native <code>fetch</code> with its own caching layer — <code>{ cache: 'force-cache' }</code> (default, roughly SSG-like), <code>{ cache: 'no-store' }</code> (SSR-like, always fresh), and <code>{ next: { revalidate: N } }</code> (ISR-like) — letting caching behavior be configured per individual fetch call rather than per whole page.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is the single biggest mental model shift from the older Pages Router, and misapplying <code>'use client'</code> too broadly (a common instinct from pre-App-Router habits) silently defeats a large part of the App Router's actual performance benefit — so it's a strong, current signal of whether someone has real hands-on App Router experience versus older Next.js knowledge only.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A camp detail page can be almost entirely a Server Component directly awaiting the camp data — only the "Book Now" button and date picker actually need interactivity, so those get isolated into a small Client Component while the surrounding description, images, and reviews stay server-rendered and ship no JS at all for that content.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Adding <code>'use client'</code> at the top of a large page component just because one small piece of it needs interactivity, dragging the entire subtree into client-side JS unnecessarily instead of isolating just the interactive leaf.</li>
+          <li>Trying to use hooks like <code>useState</code>/<code>useEffect</code> or browser APIs inside a Server Component — they simply aren't available there, since it never runs in the browser.</li>
+          <li>Not understanding that Next.js's extended <code>fetch</code> caching is opt-out (cached by default), which surprises developers expecting always-fresh data by default, the opposite of typical client-side fetch behavior.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"My default is a Server Component for everything, and I only reach for 'use client' on the smallest possible leaf that actually needs interactivity — state, event handlers, browser APIs — rather than marking an entire page client-side because one button needs an onClick. That keeps most of the page's JS payload at zero, since Server Components render to HTML on the server and never ship their code to the browser at all. For data fetching, I'm deliberate about each fetch's cache option individually rather than assuming one caching behavior for the whole page — Next.js caches fetch calls by default, which catches people off guard if they're expecting client-fetch-style always-fresh behavior."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Can a Server Component import and render a Client Component? Can it go the other way?</li>
+          <li>Why can't you use useState inside a Server Component?</li>
+          <li>What's the default caching behavior of fetch in the App Router, and how do you opt out of it?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Server Component (default, no directive needed) — awaits data directly</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">CampPage</span>({ params }) {
+  <span class="kw">const</span> camp = <span class="kw">await</span> <span class="fn">getCamp</span>(params.id); <span class="cmt">// direct DB/API call, zero client JS for this</span>
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>{camp.name}<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{camp.description}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;BookingButton</span> campId={camp.id} <span class="tag">/&gt;</span> {<span class="cmt">/* only THIS is client-side */</span>}
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cmt">// Isolated Client Component — the only piece that needs interactivity</span>
+<span class="str">'use client'</span>;
+<span class="kw">function</span> <span class="fn">BookingButton</span>({ campId }) {
+  <span class="kw">const</span> [loading, setLoading] = <span class="fn">useState</span>(<span class="kw">false</span>);
+  <span class="kw">return</span> <span class="tag">&lt;button</span> onClick={() => <span class="fn">setLoading</span>(<span class="kw">true</span>)}<span class="tag">&gt;</span>Book Now<span class="tag">&lt;/button&gt;</span>;
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Push 'use client' as far down the tree as possible — isolate interactivity in small leaf components.</li>
+          <li>Set each fetch call's cache behavior deliberately rather than assuming a default across the whole page.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 10 ============ -->
+      <section class="topic" data-topic="10" id="t10">
+        <div class="topic-head">
+          <h2><span class="tagnum">10.</span> Next.js Middleware, Auth &amp; Metadata</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="10">☆</button>
+            <button class="check-btn" data-ck="10">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Next.js <strong>Middleware</strong> runs before a request completes, at the edge, before it hits a page or API route — used for auth redirects, A/B test bucketing, geolocation-based routing, or header manipulation, without needing to duplicate that logic inside every individual route. Auth in Next.js commonly combines middleware (checking for a valid session/token cookie and redirecting unauthenticated users before any page code even runs) with server-side session validation inside Server Components/Route Handlers for the actual data-fetching authorization. The <strong>Metadata API</strong> lets you define per-page <code>&lt;title&gt;</code>, description, and Open Graph tags declaratively — either statically via an exported <code>metadata</code> object, or dynamically via a <code>generateMetadata</code> function when the values depend on fetched data (like a camp's actual name and image for its detail page's social preview).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>These are the practical, ship-it details that separate "built a React app" from "shipped a production Next.js app with real SEO and auth requirements" — metadata specifically has direct business impact (social sharing previews, search ranking) that's easy to get wrong or forget entirely.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Protecting a camp organizer's dashboard routes with middleware that checks for a valid session cookie and redirects to <code>/login</code> before any dashboard code runs is both a better user experience (instant redirect, no flash of protected content) and more efficient than letting the page render and then checking auth client-side. Dynamic metadata on a camp detail page means sharing that link on social media shows the actual camp's name and photo instead of a generic site-wide title.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Relying only on client-side auth checks (redirecting after the page has already rendered) instead of middleware — causes a visible flash of protected content before the redirect happens, and is trivially bypassable since it's a UI-only check.</li>
+          <li>Treating a middleware-level cookie check as sufficient authorization for actual data access — middleware is a fast first gate, but sensitive server-side data fetching still needs its own proper session/permission validation, since middleware can be a shallow check by design (for performance at the edge).</li>
+          <li>Forgetting dynamic metadata entirely on data-driven pages, leaving every shared link showing the same generic title/image regardless of the actual content.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"For auth I use middleware as the first, fast gate — checking for a valid session cookie and redirecting before any protected page code even runs, which avoids the flash-of-content problem a purely client-side check has. But I don't treat that as the only check — the actual data-fetching in Server Components or Route Handlers still validates the session and permissions properly, since middleware is meant to be a lightweight edge check, not the full authorization logic. For metadata, anything data-driven — a camp detail page, a blog post — gets generateMetadata pulling the real title, description, and image from the fetched data, so shared links actually reflect the specific content instead of a generic fallback."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why isn't a middleware-level auth check alone sufficient for protecting sensitive data access?</li>
+          <li>What's the difference between the static metadata export and generateMetadata, and when do you need the latter?</li>
+          <li>What problem does middleware-based auth solve that a client-side redirect check doesn't?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// middleware.ts — runs before the request reaches the page</span>
+<span class="kw">export</span> <span class="kw">function</span> <span class="fn">middleware</span>(request) {
+  <span class="kw">const</span> session = request.cookies.<span class="fn">get</span>(<span class="str">'session'</span>);
+  <span class="kw">if</span> (!session && request.nextUrl.pathname.<span class="fn">startsWith</span>(<span class="str">'/dashboard'</span>)) {
+    <span class="kw">return</span> NextResponse.<span class="fn">redirect</span>(<span class="kw">new</span> <span class="kw">URL</span>(<span class="str">'/login'</span>, request.url));
+  }
+}
+<span class="kw">export</span> <span class="kw">const</span> config = { matcher: [<span class="str">'/dashboard/:path*'</span>] };
+
+<span class="cmt">// Dynamic metadata pulling real content for social sharing</span>
+<span class="kw">export</span> <span class="kw">async</span> <span class="kw">function</span> <span class="fn">generateMetadata</span>({ params }) {
+  <span class="kw">const</span> camp = <span class="kw">await</span> <span class="fn">getCamp</span>(params.id);
+  <span class="kw">return</span> {
+    title: camp.name,
+    description: camp.description,
+    openGraph: { images: [camp.imageUrl] },
+  };
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Use middleware for fast, edge-level auth redirects, but always validate authorization again at the actual data-fetching layer.</li>
+          <li>Add generateMetadata to every data-driven, shareable page — it's cheap and has real, direct SEO/social impact.</li>
+        </ul>
+      </section>
+
+      <!-- ============ RAPID FIRE ============ -->
+      <section class="topic" id="rapidfire">
+        <div class="topic-head"><h2><span class="tagnum">⚡</span> Rapid-Fire Q&amp;A — React &amp; Next.js</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">Click any question to reveal a tight, interview-ready answer.</p>
+        <div class="rapid-grid" id="rapid-grid"></div>
+      </section>
+
+      <!-- ============ CHEAT SHEET ============ -->
+      <section class="topic" id="cheatsheet-section">
+        <div class="topic-head"><h2><span class="tagnum">📋</span> Printable Revision Cheat Sheet</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">One line per concept — for the 10 minutes before you walk in.</p>
+        <div class="cheatsheet">
+          <table>
+            <tr><th>Concept</th><th>One-line answer</th></tr>
+            <tr><td>Virtual DOM</td><td>In-memory tree React diffs to compute minimal real DOM mutations.</td></tr>
+            <tr><td>Reconciliation</td><td>Same position + same type = update in place; different type = tear down + rebuild.</td></tr>
+            <tr><td>Controlled input</td><td>Value driven by React state; every change goes through onChange.</td></tr>
+            <tr><td>Uncontrolled input</td><td>DOM holds the value; read on demand via ref, not tracked per keystroke.</td></tr>
+            <tr><td>useEffect deps array</td><td>[] = once on mount. No array = every render. Missing a used value = stale closure bug.</td></tr>
+            <tr><td>useRef</td><td>Mutable value persisting across renders WITHOUT triggering a re-render.</td></tr>
+            <tr><td>useMemo</td><td>Caches a computed VALUE between renders based on dependencies.</td></tr>
+            <tr><td>useCallback</td><td>Caches a FUNCTION REFERENCE — needed to make React.memo children actually skip re-renders.</td></tr>
+            <tr><td>React.memo</td><td>Skips re-render if props are shallowly equal to the previous render.</td></tr>
+            <tr><td>Index as key risk</td><td>Breaks on reorder/insert/delete — can attach state to the wrong logical row.</td></tr>
+            <tr><td>Context re-render cost</td><td>Every consumer re-renders on ANY change to the context value, not just the field it reads.</td></tr>
+            <tr><td>Error Boundary scope</td><td>Catches render/lifecycle errors in children only — NOT event handlers or async code.</td></tr>
+            <tr><td>React.lazy + Suspense</td><td>Code-splits a component; Suspense shows a fallback while its chunk loads.</td></tr>
+            <tr><td>CSR</td><td>Empty shell + client renders everything — fast serve, slow first paint, weak SEO.</td></tr>
+            <tr><td>SSR</td><td>Full HTML generated per request — fresh data, adds server latency every time.</td></tr>
+            <tr><td>SSG</td><td>HTML generated once at build time — fastest serve, frozen until next deploy.</td></tr>
+            <tr><td>ISR</td><td>Static speed + background regeneration on an interval — freshness without a full rebuild.</td></tr>
+            <tr><td>Server Component (default)</td><td>Renders on server, ships zero JS, can await data directly — no interactivity.</td></tr>
+            <tr><td>'use client'</td><td>Opts a component (+ its imports) into client rendering — needed for hooks/events.</td></tr>
+            <tr><td>fetch caching (App Router)</td><td>Cached by default; { cache: 'no-store' } = always fresh, { next: { revalidate } } = ISR-style.</td></tr>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="part-footer">
+      <div class="next"><b>Next up</b>Choose Part 3 (Node.js + Backend Design), Part 6 (System Design), or Part 7 (HR + Project Stories)</div>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">Part 2 of 7 · React &amp; Next.js · complete</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const typedEl = document.getElementById('typed');
+const typedText = "$ npx create-interview-prep --chapter=2 --stack=React,NextJS";
+let ti = 0;
+function typeStep(){
+  if(ti <= typedText.length){ typedEl.textContent = typedText.slice(0, ti); ti++; setTimeout(typeStep, 18); }
+}
+typeStep();
+
+const topics = [
+  {id:1, title:'Virtual DOM, Reconciliation & JSX'},
+  {id:2, title:'Props, State & Controlled Components'},
+  {id:3, title:'Core Hooks: useState, useEffect, useRef'},
+  {id:4, title:'useMemo, useCallback & Re-renders'},
+  {id:5, title:'Custom Hooks & Context API'},
+  {id:6, title:'Keys, Lists & Rendering Behavior'},
+  {id:7, title:'Error Boundaries, Suspense & Lazy Loading'},
+  {id:8, title:'Rendering Strategies: SSR/SSG/ISR/CSR'},
+  {id:9, title:'App Router: Server vs Client Components'},
+  {id:10, title:'Middleware, Auth & Metadata'},
+];
+
+const tocEl = document.getElementById('toc');
+topics.forEach(t=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#t${t.id}" data-toc="${t.id}">${String(t.id).padStart(2,'0')}. ${t.title}</a>`;
+  tocEl.appendChild(li);
+});
+
+const LS_CHECK = 'ip_ch2_checked';
+const LS_BOOKMARK = 'ip_ch2_bookmarks';
+const getChecked = () => JSON.parse(localStorage.getItem(LS_CHECK) || '[]');
+const setChecked = (arr) => localStorage.setItem(LS_CHECK, JSON.stringify(arr));
+const getBookmarks = () => JSON.parse(localStorage.getItem(LS_BOOKMARK) || '[]');
+const setBookmarks = (arr) => localStorage.setItem(LS_BOOKMARK, JSON.stringify(arr));
+
+function refreshProgress(){
+  const checked = getChecked();
+  document.getElementById('progress-text').textContent = `${checked.length} / ${topics.length}`;
+  document.getElementById('progress-fill').style.width = (checked.length/topics.length*100) + '%';
+  document.querySelectorAll('.check-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-ck');
+    btn.classList.toggle('active', checked.includes(id));
+  });
+  document.querySelectorAll('.toc a[data-toc]').forEach(a=>{
+    a.classList.toggle('done', checked.includes(a.getAttribute('data-toc')));
+  });
+}
+
+function refreshBookmarks(){
+  const bm = getBookmarks();
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-bm');
+    btn.classList.toggle('active', bm.includes(id));
+    btn.textContent = bm.includes(id) ? '★' : '☆';
+  });
+  const list = document.getElementById('bookmark-list');
+  if(bm.length === 0){
+    list.innerHTML = '<li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li>';
+    return;
+  }
+  list.innerHTML = bm.map(id=>{
+    const t = topics.find(t=>String(t.id)===String(id));
+    return t ? `<li><a href="#t${t.id}">★ ${t.title}</a></li>` : '';
+  }).join('');
+}
+
+document.querySelectorAll('.check-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-ck');
+    let checked = getChecked();
+    checked = checked.includes(id) ? checked.filter(x=>x!==id) : [...checked, id];
+    setChecked(checked);
+    refreshProgress();
+  });
+});
+
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-bm');
+    let bm = getBookmarks();
+    bm = bm.includes(id) ? bm.filter(x=>x!==id) : [...bm, id];
+    setBookmarks(bm);
+    refreshBookmarks();
+  });
+});
+
+refreshProgress();
+refreshBookmarks();
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const codeText = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(codeText).then(()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(()=> btn.textContent = orig, 1200);
+    });
+  });
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('section.topic[data-topic]').forEach(sec=>{
+    const text = sec.innerText.toLowerCase();
+    sec.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+
+const rapidFire = [
+  ["What's the difference between state and props?", "Props are passed down from a parent and are read-only; state is owned and managed internally by a component and can change over time, triggering a re-render."],
+  ["Why do React list items need a unique key?", "So React can correctly match array items to rendered elements across renders instead of assuming position equals identity, which matters for reordering, insertion, and deletion."],
+  ["What is prop drilling?", "Passing a prop through several intermediate components that don't use it themselves, just to reach a deeply nested child — Context or composition can avoid it."],
+  ["What's the difference between React.memo and useMemo?", "React.memo memoizes an entire component, skipping re-render if props are shallowly equal; useMemo memoizes a computed value inside a component."],
+  ["What is the Rules of Hooks?", "Only call hooks at the top level (never inside loops/conditions/nested functions) and only from React functions — this keeps hook call order stable and consistent between renders."],
+  ["What does 'lifting state up' mean?", "Moving state from a child component to their closest common ancestor so multiple children can share and stay in sync with it."],
+  ["What is a Higher-Order Component (HOC)?", "A function that takes a component and returns a new, enhanced component — an older pattern for logic reuse, largely superseded by custom hooks."],
+  ["What's the difference between useEffect and useLayoutEffect?", "useEffect runs asynchronously after the browser paints; useLayoutEffect runs synchronously before paint, used when you need to measure/mutate the DOM before the user sees it (avoiding visual flicker)."],
+  ["Why shouldn't you call a hook conditionally?", "React relies on hooks being called in the exact same order every render to correctly associate each hook call with its internal state — a conditional hook call breaks that ordering."],
+  ["What's the difference between state batching in React 17 vs React 18?", "React 17 only batches state updates inside React event handlers; React 18's automatic batching extends this to updates inside promises, timeouts, and native event handlers too."],
+  ["What is hydration in the context of SSR?", "The process of React attaching event listeners and making server-rendered static HTML interactive on the client, without re-rendering the DOM from scratch."],
+  ["What's a hydration mismatch error?", "When the server-rendered HTML doesn't match what the client would render on first pass — often caused by using browser-only values (like Date.now() or window) during server rendering."],
+  ["What is the purpose of a fragment (<></>) in React?", "Groups multiple elements without adding an extra wrapper DOM node, since a component must return a single root element."],
+  ["What does 'children' as a prop mean?", "Whatever is nested between a component's opening and closing tags is automatically passed to it as the special props.children value."],
+  ["Why is directly mutating state (e.g. pushing to a state array) a bug?", "React compares state by reference to decide whether to re-render; mutating in place keeps the same reference, so React may not detect the change and skip the re-render entirely."],
+  ["What's the difference between useState and useReducer for form state?", "useState is simpler for a few independent fields; useReducer is cleaner once multiple fields update together via related actions, or update logic gets complex."],
+  ["What is the purpose of the dependency array's exhaustive-deps ESLint rule?", "Flags when a useEffect uses a value from component scope that isn't listed in the dependency array, which usually indicates a stale-closure bug waiting to happen."],
+  ["What does getStaticPaths do in Next.js (Pages Router) or generateStaticParams (App Router)?", "Defines which dynamic route parameters (e.g. which camp IDs) should be pre-rendered at build time for a statically generated dynamic route."],
+  ["What's the difference between a Route Handler and a Server Component fetching data?", "A Route Handler is an explicit API endpoint (app/api/.../route.ts) returning a response, typically for client-side fetches or webhooks; a Server Component can fetch and render data directly without exposing a separate API route at all."],
+  ["What is the purpose of next/image over a plain img tag?", "Automatic responsive sizing, lazy loading, and format optimization (like serving WebP) with built-in layout-shift prevention via required width/height."],
+  ["What's a render prop pattern?", "A component that takes a function as a prop (or as children) and calls it to determine what to render, passing it internal state or logic — another older logic-sharing pattern, mostly replaced by hooks."],
+  ["Why does React warn about missing keys but not throw an error?", "Missing keys don't break rendering outright — React falls back to index-based matching — but it warns because that fallback can silently cause the state-mismatch bugs keys are meant to prevent."],
+  ["What's the difference between client-side navigation and a full page reload in Next.js?", "The Link component does client-side navigation, fetching only the new route's data/JS and preserving client-side state elsewhere, instead of a full browser reload of the entire page."],
+  ["What does 'colocation' mean in the context of the App Router's file structure?", "Keeping a route's components, styles, and tests in the same folder as its route file, rather than separated into distant global folders by file type."],
+  ["What is streaming SSR / why does Suspense matter for it?", "Sends HTML to the browser in chunks as it becomes ready instead of waiting for the entire page to finish rendering server-side, with Suspense boundaries marking where a fallback can show while a slower part streams in later."],
+];
+const grid = document.getElementById('rapid-grid');
+rapidFire.forEach(([q,a])=>{
+  const d = document.createElement('details');
+  d.className = 'qa';
+  d.innerHTML = `<summary>${q}</summary><div class="ans">${a}</div>`;
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>
