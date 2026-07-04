@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep :: Part 7 — HR &amp; Project Stories</title>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --surface:#11151c;
+    --surface-alt:#171c26;
+    --border:#232936;
+    --text:#d7dce3;
+    --text-dim:#8b93a1;
+    --text-faint:#5c6472;
+    --accent:#e3b341;
+    --accent-dim:#8a6d2a;
+    --cyan:#5fd3bc;
+    --red:#e8735c;
+    --green:#6fcf97;
+    --mono: 'SF Mono', 'Fira Code', Consolas, Menlo, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.65; }
+  ::selection{background:var(--accent); color:#161616;}
+  a{color:var(--cyan);}
+  code, pre{font-family:var(--mono);}
+  code{background:var(--surface-alt); padding:2px 6px; border-radius:4px; color:var(--accent); font-size:0.87em;}
+
+  #app{display:flex; min-height:100vh;}
+  #sidebar{
+    width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+    position:fixed; top:0; left:0; bottom:0; overflow-y:auto; padding:20px 16px 40px;
+  }
+  #main{margin-left:300px; flex:1; min-width:0; padding:0;}
+  @media (max-width: 900px){
+    #sidebar{position:relative; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);}
+    #main{margin-left:0;}
+    #app{flex-direction:column;}
+  }
+
+  .brand{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:0.5px; margin-bottom:4px;}
+  .brand-title{font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:18px; font-weight:600;}
+  #search{
+    width:100%; padding:9px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:6px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+  .search-hint{font-size:11px; color:var(--text-faint); margin-bottom:18px; font-family:var(--mono);}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--bg); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s;}
+
+  .chapters{list-style:none; padding:0; margin:0 0 20px;}
+  .chapters li{margin-bottom:2px;}
+  .chapters a{
+    display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text-dim);
+    font-size:13px; padding:7px 8px; border-radius:var(--radius);
+  }
+  .chapters a.active, .chapters li.current a{color:var(--accent); background:var(--surface-alt);}
+  .chapters .chnum{font-family:var(--mono); color:var(--text-faint); font-size:11px; width:18px; flex-shrink:0;}
+  .chapters li.current .chnum{color:var(--accent);}
+  .chapters .soon{font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-left:auto;}
+  .chapters .done-tag{font-size:10px; color:var(--green); font-family:var(--mono); margin-left:auto;}
+
+  .toc{list-style:none; padding:0; margin:0;}
+  .toc-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .toc li a{
+    display:block; text-decoration:none; color:var(--text-dim); font-size:12.5px; padding:5px 8px 5px 20px;
+    border-left:2px solid transparent; border-radius:0 4px 4px 0;
+  }
+  .toc li a:hover{color:var(--text);}
+  .toc li a.done{color:var(--green);}
+  .toc li a.done::before{content:"✓ "; color:var(--green);}
+
+  .hero{
+    padding:56px 48px 40px; border-bottom:1px solid var(--border);
+    background: radial-gradient(600px 200px at 85% -20%, rgba(227,179,65,0.08), transparent);
+  }
+  .hero-eyebrow{font-family:var(--mono); color:var(--text-faint); font-size:12px; margin-bottom:10px;}
+  #typed{font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:18px; min-height:18px;}
+  #typed::after{content:"█"; animation:blink 1s step-start infinite; color:var(--accent);}
+  @keyframes blink{50%{opacity:0;}}
+  .hero h1{font-family:var(--mono); font-size:clamp(28px,4vw,42px); margin:0 0 14px; color:#fff; line-height:1.25;}
+  .hero p{color:var(--text-dim); max-width:680px; font-size:15px;}
+  .hero-stats{display:flex; gap:28px; margin-top:26px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono);}
+  .stat b{color:var(--accent); font-size:20px; display:block;}
+  .stat span{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .content{padding:8px 48px 80px; max-width:920px;}
+  section.topic{border-bottom:1px solid var(--border); padding:36px 0;}
+  section.topic:first-of-type{padding-top:28px;}
+
+  .topic-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px;}
+  .topic-head h2{font-family:var(--mono); font-size:22px; color:#fff; margin:0; display:flex; align-items:center; gap:10px;}
+  .topic-head h2 .tagnum{color:var(--accent);}
+  .topic-controls{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .diff{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;}
+  .diff.mid{color:var(--accent); border-color:var(--accent-dim);}
+  .diff.senior{color:var(--red); border-color:#5a3229;}
+  .star-btn, .check-btn{
+    background:none; border:1px solid var(--border); color:var(--text-faint); cursor:pointer;
+    border-radius:5px; padding:5px 8px; font-size:14px; line-height:1;
+  }
+  .star-btn.active{color:var(--accent); border-color:var(--accent-dim);}
+  .check-btn.active{color:var(--green); border-color:#2c5a41;}
+
+  .subhead{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin:22px 0 8px;}
+  .subhead.mistakes{color:var(--red);}
+  .subhead.best{color:var(--green);}
+  .topic p{margin:0 0 10px; color:var(--text);}
+  .topic ul{margin:6px 0 10px; padding-left:20px;}
+  .topic li{margin-bottom:5px; color:var(--text);}
+
+  pre{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; font-size:12.8px; position:relative; margin:10px 0;
+  }
+  pre code{background:none; padding:0; color:var(--text); white-space:pre-wrap;}
+  .kw{color:#c586c0;} .str{color:var(--green);} .cmt{color:var(--text-faint); font-style:italic;} .fn{color:#5fb3d3;}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-dim); font-family:var(--mono); font-size:10.5px; padding:4px 8px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);}
+
+  .callout{border-left:3px solid var(--accent); background:var(--surface); padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim);}
+  .followups{list-style:none; padding:0; margin:8px 0;}
+  .followups li{ font-size:13.5px; color:var(--text-dim); padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border); }
+  .followups li::before{content:"↳"; position:absolute; left:0; color:var(--text-faint);}
+  .followups li:last-child{border-bottom:none;}
+
+  .rapid-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 32px;}
+  @media (max-width:700px){.rapid-grid{grid-template-columns:1fr;}}
+  details.qa{border-bottom:1px solid var(--border); padding:10px 0;}
+  details.qa summary{cursor:pointer; color:var(--text); font-size:13.5px; list-style:none; display:flex; gap:8px;}
+  details.qa summary::before{content:"▸"; color:var(--accent); flex-shrink:0;}
+  details.qa[open] summary::before{content:"▾";}
+  details.qa summary::-webkit-details-marker{display:none;}
+  details.qa .ans{padding:8px 0 0 18px; color:var(--text-dim); font-size:13px;}
+
+  .part-footer{
+    padding:50px 48px; border-top:1px solid var(--border); background:var(--surface);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .part-footer .next{font-family:var(--mono); color:var(--text-dim); font-size:13px;}
+  .part-footer .next b{color:var(--accent); display:block; font-size:15px; margin-bottom:4px;}
+  .kbd{font-family:var(--mono); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--text-dim);}
+
+  .cheatsheet{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:22px 26px; margin:20px 0;}
+  .cheatsheet table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cheatsheet th{text-align:left; font-family:var(--mono); color:var(--text-faint); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);}
+  .cheatsheet td{padding:7px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); vertical-align:top;}
+  .cheatsheet td:first-child{color:var(--accent); font-family:var(--mono); white-space:nowrap;}
+
+  .framework-box{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin:14px 0;}
+  .framework-box ol{margin:0; padding-left:20px;}
+  .framework-box li{margin-bottom:10px; color:var(--text);}
+  .framework-box li b{color:var(--accent); font-family:var(--mono); font-size:12.5px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:2px;}
+
+  .completion-banner{
+    background:linear-gradient(135deg, rgba(227,179,65,0.1), rgba(95,211,188,0.06));
+    border:1px solid var(--accent-dim); border-radius:10px; padding:26px 30px; margin:20px 0; text-align:center;
+  }
+  .completion-banner .big{font-family:var(--mono); font-size:28px; color:var(--accent); margin-bottom:6px;}
+  .completion-banner p{color:var(--text-dim); margin:0;}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="brand">$ interview-prep --guide</div>
+    <div class="brand-title">Full-Stack Interview Handbook</div>
+
+    <input type="text" id="search" placeholder="/ search this chapter…" autocomplete="off">
+    <div class="search-hint">press <span class="kbd">/</span> to focus · <span class="kbd">esc</span> to clear</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>CH.7 PROGRESS</span><span id="progress-text">0 / 10</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <ul class="chapters">
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">01</span> JavaScript + DOM <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">02</span> React + Next.js <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">03</span> Node.js + Backend Design <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">04</span> PHP + Laravel <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">05</span> Database + SQL <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">06</span> System Design <span class="done-tag">done</span></a></li>
+      <li class="current"><a href="#top"><span class="chnum">07</span> HR + Project Stories</a></li>
+    </ul>
+
+    <div class="toc-title">On this page</div>
+    <ul class="toc" id="toc"></ul>
+
+    <div class="toc-title">Bookmarks</div>
+    <ul class="toc" id="bookmark-list"><li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li></ul>
+  </aside>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="hero-eyebrow">CHAPTER 7 OF 7 · FINAL CHAPTER</div>
+      <div id="typed"></div>
+      <h1>HR &amp; Project Stories,<br>turning your actual work into answers that land</h1>
+      <p>Ten topics — the STAR method, "tell me about yourself," strengths/weaknesses, conflict stories, leadership &amp; ownership, failure questions, talking about your proudest work, explaining an employment gap honestly, salary negotiation &amp; career goals, and closing the interview strong — each with a model answer built from your actual CampVine, Yardstik, and Zujax experience, not generic filler. Then 25 rapid-fire prompts and a cheat sheet.</p>
+      <div class="hero-stats">
+        <div class="stat"><b>10</b><span>Deep Topics</span></div>
+        <div class="stat"><b>25</b><span>Rapid Fire Prompts</span></div>
+        <div class="stat"><b>7</b><span>Chapters Complete</span></div>
+        <div class="stat"><b>0</b><span>Chapters Remaining</span></div>
+      </div>
+    </section>
+
+    <div class="content">
+
+      <!-- ============ TOPIC 1 ============ -->
+      <section class="topic" data-topic="1" id="t1">
+        <div class="topic-head">
+          <h2><span class="tagnum">01.</span> The STAR Method &amp; How to Structure Any Answer</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="1">☆</button>
+            <button class="check-btn" data-ck="1">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> STAR structures any behavioral answer into four parts: <strong>Situation</strong> (brief context — one or two sentences, not a five-minute backstory), <strong>Task</strong> (what specifically was your responsibility or the goal), <strong>Action</strong> (what <em>you</em> actually did — the longest, most detailed part, and the one candidates most often shrink instead of expand), <strong>Result</strong> (the outcome, ideally with a concrete detail or number, plus what you learned). The most common failure isn't forgetting the structure — it's spending 80% of the answer on Situation/Task and rushing through Action, which is the part that actually shows the interviewer how you think and work.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Behavioral questions are trying to predict future behavior from past behavior — a vague, generic answer gives them nothing to predict from, while a specific STAR-structured story with a real decision point gives them concrete evidence of how you actually operate under real conditions.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Nearly every question in this chapter — leadership, conflict, failure, proudest work — is really just "tell me a STAR story about X," so this framework is the one skill that makes every other topic in this chapter easier once it's solid.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Spending most of the answer on Situation and Task, leaving Action — the part that actually demonstrates your skills and judgment — thin and rushed.</li>
+          <li>Giving a Result with no concrete detail ("it went well") instead of something specific and, where possible, measurable.</li>
+          <li>Rambling without a clear endpoint — a STAR answer should have a natural, confident stopping point, not trail off.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I keep Situation and Task tight — just enough context to make the story make sense — and spend most of my answer on the Action, since that's the part that actually shows how I think and what I did, not just what happened around me. I close with a concrete Result, and where I can, a specific number or detail rather than a vague 'it worked out.' For a refactor like the one I led on CampVine, that might mean naming the actual pattern I introduced and what specifically got easier afterward, not just 'the code was better.'"</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's the most common mistake people make with STAR answers?</li>
+          <li>How long should a STAR answer typically be?</li>
+          <li>What do you do if you don't have a number for the Result?</li>
+        </ul>
+
+        <pre><code><span class="cmt">STAR skeleton — keep S+T under 20% of the answer, A is the bulk:
+
+Situation:  1-2 sentences of context only
+Task:       1 sentence — what was YOUR specific responsibility
+Action:     the majority of the answer — concrete decisions, not just events
+Result:     specific outcome + one line on what you learned or would do differently
+
+Example skeleton for a CampVine story:
+S: "CampVine's booking logic had grown organically over time..."
+T: "As the sole developer, I was responsible for making it maintainable
+    without breaking active bookings mid-refactor."
+A: "I introduced a Service-Repository split, starting with the highest-risk
+    domain first, wrote feature tests around the booking flow before touching
+    anything, then migrated one bounded context at a time..."
+R: "The discount engine rewrite alone removed [specific reduction] in
+    duplicated logic, and the test suite now catches regressions that
+    would have previously required manual QA of the whole booking flow."</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Prepare 5-6 flexible STAR stories from your real work in advance that can each answer multiple different question types, rather than memorizing one story per possible question.</li>
+          <li>Practice saying each story out loud, timed — most STAR answers should land in 60-90 seconds unless asked to go deeper.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 2 ============ -->
+      <section class="topic" data-topic="2" id="t2">
+        <div class="topic-head">
+          <h2><span class="tagnum">02.</span> "Tell Me About Yourself"</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="2">☆</button>
+            <button class="check-btn" data-ck="2">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> This is almost always the opening question, and it's not an invitation to recite your resume line by line — the interviewer already has it in front of them. It's a chance to give a tight narrative arc: where you've been (briefly), what you actually do now and what you're good at, and why you're specifically interested in this role — usually in under 90 seconds. The strongest structure is <strong>present → past → future</strong>: what you do now, the relevant experience that got you there, and what you're looking for next — which naturally leads the conversation toward exactly the strengths you want to talk about.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>It's a warm-up question, but it's also the first real signal of whether you can communicate clearly and concisely under a bit of pressure — a rambling, unstructured answer here sets a weaker tone for the rest of the interview than a tight, confident one.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>For your situation specifically, this is the answer to get right: it needs to cover backend-focused full-stack experience (Laravel, Node, React, Next.js), the CampVine ownership story as the headline, and can briefly and matter-of-factly acknowledge the current job search without dwelling on it — covered in more depth in the employment-gap topic later in this chapter.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Reciting the entire resume chronologically from first job to now, including irrelevant details — the interviewer already has this; they want the narrative, not the list.</li>
+          <li>Going over 2 minutes — this question is meant to be a tight opener, not the whole interview.</li>
+          <li>Ending on something negative or apologetic (dwelling on the layoff) instead of landing on forward-looking energy about what you're looking for next.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I'm a backend-focused full-stack developer with a few years of experience across Laravel, Node, React, and Next.js. Most recently I was the sole developer at a startup called Zujax, leading a full Service-Repository and domain-driven refactor of their camp management platform — that's been the most ownership I've had over an architecture end to end, from schema decisions down to third-party integrations like background-check APIs. Before that I worked on EOSVOLT, an EV charging SaaS platform, inside a larger 20-plus person Agile team, which gave me the flip side — working within established conventions on a bigger codebase. I'm currently looking for my next role, ideally one where I can keep building that kind of ownership, and I've been using the time to sharpen up some areas like system design that don't come up as often day-to-day."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What are you looking for in your next role specifically?</li>
+          <li>What was the most interesting technical decision you made at your last role?</li>
+          <li>Why full-stack with a backend focus, rather than specializing purely in one or the other?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Present → Past → Future structure:
+
+PRESENT: What you do / are known for right now (backend-focused full-stack,
+         Laravel/Node/React/Next.js, most recent ownership story)
+
+PAST:    The 1-2 experiences that are MOST relevant to this specific role
+         (pick based on the job description, not everything you've ever done)
+
+FUTURE:  What you're looking for next, tied to why THIS role/company fits</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Tailor which past experience you emphasize based on the specific role — lead with EOSVOLT's team-based SaaS experience for a larger-team role, CampVine's ownership for a startup/sole-developer-style role.</li>
+          <li>End on forward-looking energy about the role or company, not a trailing-off summary of the past.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 3 ============ -->
+      <section class="topic" data-topic="3" id="t3">
+        <div class="topic-head">
+          <h2><span class="tagnum">03.</span> Strengths &amp; Weaknesses</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="3">☆</button>
+            <button class="check-btn" data-ck="3">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> For strengths, the goal is a specific, evidenced strength relevant to the role — not a generic adjective ("I'm a hard worker") with no proof behind it. For weaknesses, the interviewer is testing self-awareness and whether you're actively working on something, not looking for a real disqualifying flaw — but the classic "fake weakness" trick (a strength disguised as a weakness, like "I work too hard") is transparent and reads as evasive rather than self-aware. The strongest weakness answers name something genuinely true, show awareness of its real impact, and describe a concrete, ongoing action being taken about it.
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Strengths with no evidence are just claims; weaknesses with no self-awareness or corrective action are a red flag about whether you can accurately assess your own work — both questions are really testing the same underlying thing: honest, evidenced self-assessment.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A genuine, well-framed weakness for your situation might be around system design or broad architectural communication — something you're actively addressing (building a structured study guide, working through this exact interview prep) rather than a vague deflection, which makes the answer credible instead of rehearsed-sounding.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Using the "fake weakness" trick (a humble-brag disguised as a flaw) — experienced interviewers see through it immediately and it can actively hurt trust in the rest of your answers.</li>
+          <li>Giving a strength with zero supporting evidence or example — an unsupported claim is forgettable and doesn't differentiate you.</li>
+          <li>Naming a weakness that's actually core to the role you're interviewing for (e.g. "I'm not great with databases" for a backend-heavy role) — pick something real but not disqualifying.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"One strength I'd point to is ownership under ambiguity — at Zujax I was the sole developer responsible for a full architectural refactor with no one else to lean on for review or direction, which meant I had to make real calls about scope and sequencing, not just execute a spec. For a weakness, system design and broad architectural communication is an area I'm actively working on — it doesn't come up as often in day-to-day feature work as fundamentals like the language or framework do, so I've been deliberately building out structured practice around it, including case studies like designing a chat system or a rate limiter, rather than waiting for it to come up naturally on the job."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Give me a specific example of that strength in action.</li>
+          <li>What have you actually done about that weakness, concretely?</li>
+          <li>What would your last manager say your biggest weakness was?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Weakness answer formula (avoid the "fake weakness" trap):
+
+1. Name something REAL — not a disguised strength
+2. Show you understand its actual impact/cost
+3. Describe a CONCRETE, ongoing action — not just "I'm working on it"
+
+Weak:  "I work too hard and care too much" (transparent humble-brag)
+Better: "System design comes up less often day-to-day than core language
+         work, so it's atrophied more than I'd like — I've been actively
+         rebuilding it through structured case-study practice."</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Pick a strength you can immediately back with a specific example if asked to elaborate.</li>
+          <li>Pick a weakness that's real but not core to the role, and always pair it with a concrete action you're already taking.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 4 ============ -->
+      <section class="topic" data-topic="4" id="t4">
+        <div class="topic-head">
+          <h2><span class="tagnum">04.</span> Conflict &amp; Disagreement Stories</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="4">☆</button>
+            <button class="check-btn" data-ck="4">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> This question tests emotional maturity and collaboration skill, not whether you "win" arguments. The strongest answers describe a genuine professional disagreement (usually a technical decision, not interpersonal drama), show that you engaged with the other person's perspective seriously rather than just pushing your own view, and land on a resolution — ideally one where either you changed your mind with new information, or a compromise was reached, showing you can disagree without it becoming personal or unproductive.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Every real engineering job involves disagreement — about architecture, about priorities, about code review feedback — and this question is a direct proxy for how you'll behave the first time you disagree with a teammate or manager on the actual job.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Working within a 20+ person Agile team on EOSVOLT is a natural source for this story — a larger team structure creates far more opportunity for genuine technical disagreement (code review pushback, architecture debates) than being a sole developer does, so that experience is likely the stronger well to draw from here specifically.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Choosing a story where the other person was simply wrong and you were simply right, with no genuine engagement with their perspective — reads as one-sided and a little smug.</li>
+          <li>Picking an interpersonal conflict (personality clash) instead of a professional/technical disagreement — muddier, harder to extract a clean professional lesson from.</li>
+          <li>Not having a clear resolution — a story that just ends in ongoing tension doesn't answer what the interviewer is actually asking.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"On the EOSVOLT team, I remember disagreeing with a reviewer on my approach to a caching layer for pricing data — I'd built it with a fairly aggressive TTL for performance, and they flagged that stale pricing had real business consequences for a billing-adjacent feature. My first instinct was to defend the performance angle, but I asked them to walk me through the specific consequence they were worried about, and once I understood the actual business impact — not just an abstract 'staleness is bad' — I agreed the TTL needed to be much shorter, and we ended up adding explicit cache invalidation on the specific write path instead of relying on TTL alone. It was a good reminder that a technically reasonable decision in isolation can still be wrong once you actually understand the business context behind the pushback."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What would you have done if you still disagreed after hearing them out?</li>
+          <li>How do you handle disagreeing with a manager specifically, versus a peer?</li>
+          <li>Tell me about a time you were wrong and had to admit it in front of a team.</li>
+        </ul>
+
+        <pre><code><span class="cmt">Conflict story checklist:
+
+✓ Professional/technical disagreement, not personality conflict
+✓ Shows genuine engagement with the other person's view, not just your own
+✓ Clear resolution — compromise, or you updated your position with new info
+✓ Ends on what you learned about collaboration, not just "I was right"</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Choose a story where you genuinely updated your view or reached real compromise — not one where you simply persuaded someone else to agree with you.</li>
+          <li>Keep the focus on the technical/professional substance of the disagreement, not on personalities.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 5 ============ -->
+      <section class="topic" data-topic="5" id="t5">
+        <div class="topic-head">
+          <h2><span class="tagnum">05.</span> Leadership &amp; Ownership</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="5">☆</button>
+            <button class="check-btn" data-ck="5">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Leadership questions don't require having managed people — for an individual contributor, "leadership" usually means driving a decision, owning an outcome end-to-end, or influencing direction without formal authority. The strongest answers show you making a real, sometimes uncomfortable call (not just executing someone else's plan) and taking responsibility for the outcome, good or bad.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Even for a pure IC role, this predicts whether you'll take initiative and ownership of problems versus waiting to be told exactly what to do — especially relevant for any role where you might again be the only backend developer on a project.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Being the sole developer at Zujax driving the entire CampVine architectural refactor — deciding the sequencing, the pattern to introduce, which domain to tackle first, with no senior engineer to defer to — is a strong, genuine leadership/ownership story precisely because there was no one else making those calls for you.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Assuming you need a people-management story and either forcing an awkward fit or claiming credit that belongs to a team, instead of using a genuine ownership/influence story.</li>
+          <li>Describing what happened around you rather than what you specifically decided and drove.</li>
+          <li>Taking sole credit for a team effort in a way that, if the interviewer dug in with a follow-up, wouldn't hold up honestly.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"As the sole developer on CampVine, I was the one who had to decide how to approach modernizing a codebase that had grown organically — nobody handed me a spec for the refactor. I made the call to introduce a Service-Repository pattern and start reorganizing around bounded contexts, decided the sequencing — which domain was highest-risk and needed tests written first before I touched it — and owned the outcome of those calls entirely, including catching my own mistakes since there was no second engineer to review the work. That kind of ownership under ambiguity, where you have to make the call and then live with it, is honestly the leadership experience I'd point to over anything involving direct reports."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Tell me about a decision you made that, in hindsight, you'd make differently.</li>
+          <li>How do you approach a project with no clear spec or senior guidance?</li>
+          <li>Have you ever had to influence a decision without having formal authority over it?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Reframe: "leadership" for an IC without direct reports usually means one of:
+
+- Driving a technical decision end-to-end with real ownership of the outcome
+- Influencing direction/approach without formal authority
+- Taking initiative on a problem nobody assigned you specifically
+- Being accountable when something you decided didn't go as planned</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Reframe leadership as ownership/influence if you haven't formally managed people — it's a legitimate, common interpretation.</li>
+          <li>Be precise about what you specifically decided versus what happened around you.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 6 ============ -->
+      <section class="topic" data-topic="6" id="t6">
+        <div class="topic-head">
+          <h2><span class="tagnum">06.</span> Failure &amp; Mistakes</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="6">☆</button>
+            <button class="check-btn" data-ck="6">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> This question tests accountability and whether you actually learn from mistakes, more than the mistake itself — everyone has failed at something, and refusing to name a real one (or picking a trivially fake one) is itself the red flag. The strongest answers own the mistake plainly without over-apologizing or excessive self-criticism, explain the concrete corrective action taken (both fixing the immediate issue and preventing recurrence — a new test, a new review step, a new habit), and show genuine, specific learning rather than a generic "I learned to be more careful."</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>How you handle and talk about failure is a strong proxy for psychological safety and growth mindset — someone who can't own a real mistake honestly is a risk in code review and incident response, where admitting "I broke this" quickly is far more valuable than looking perfect.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A production bug from an early, incomplete understanding of a system — perhaps a caching or discount-logic edge case in early CampVine work before it was overhauled — makes a strong, honest failure story specifically because you can point to what changed afterward: better test coverage, more careful edge-case handling in the eventual rewrite.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Picking a fake, trivial "failure" (the classic "I'm too much of a perfectionist" pattern in a different disguise) — reads as evasive.</li>
+          <li>Over-apologizing or engaging in excessive self-criticism, which can read as a lack of composure under pressure rather than accountability.</li>
+          <li>Not describing a concrete change made afterward — without that, the story is just an admission with no evidence of growth.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Early in the CampVine work, before I'd fully mapped out the discount logic's edge cases, I shipped a change that miscalculated a specific multi-item discount scenario — it wasn't caught until it affected a small number of real bookings. I owned it immediately, fixed the calculation, and more importantly used it as the trigger to rewrite that whole piece properly with item-count-based grouping and much more deliberate test coverage around edge cases, rather than just patching the one case that broke. It's part of why, going forward, I write tests around the edge cases first when I'm touching pricing-sensitive logic, instead of only testing the happy path."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What specifically did you change in your process afterward, not just that one piece of code?</li>
+          <li>How did you communicate the mistake to your team or stakeholders?</li>
+          <li>Has that changed process actually prevented a similar issue since?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Failure story formula:
+
+1. Name a REAL mistake — something with actual consequence, not trivial
+2. Own it directly, without excessive self-flagellation
+3. Describe the IMMEDIATE fix
+4. Describe the PROCESS/HABIT change that came after — this is the part
+   that proves you actually learned something, not just patched one bug</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Choose a mistake with real (but not catastrophic) consequences — it needs to feel genuine.</li>
+          <li>Always end on the durable process change, not just the one-time fix.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 7 ============ -->
+      <section class="topic" data-topic="7" id="t7">
+        <div class="topic-head">
+          <h2><span class="tagnum">07.</span> Achievements &amp; Talking About Your Proudest Work</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="7">☆</button>
+            <button class="check-btn" data-ck="7">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> This is the question where technical depth and storytelling meet — the interviewer wants to see genuine pride and specific technical detail, not a modest, vague summary ("it went well, the team was happy"). The strongest answers pick something with real technical substance (not just "I shipped a feature on time"), explain the specific problem and why it was genuinely hard, and are ready to go deep into the technical details if the interviewer asks — since this question often opens into a longer technical follow-up conversation.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is often used as a springboard into deeper technical questioning — how you talk about your own best work, and how well you can defend and elaborate on the decisions in it under follow-up questions, is itself a strong signal of real ownership versus surface familiarity.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>The Yardstik background-check integration is a strong pick here — it has real architectural substance (the "charge before send, refund on failure" ordering, HMAC webhook validation, retry queue with idempotency) that can sustain genuine technical follow-up depth, unlike a feature that's simple to describe but has nothing more to say about it once summarized.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Picking an achievement that's impressive-sounding but shallow, with nothing more to say once the summary is given — this question often leads into deeper technical follow-up, so pick something that can sustain it.</li>
+          <li>Being falsely modest to the point of underselling real, hard-won technical work — this is the one moment in the interview where genuine pride is appropriate and expected.</li>
+          <li>Not being ready for the natural next question ("walk me through how that actually worked") — treat this as an invitation to go deep, not just a summary to deliver and move past.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The piece of work I'm most proud of is the background-check API integration I built — Yardstik, for a camp platform where safety verification is genuinely business-critical. The hard part wasn't the happy path, it was designing for everything that could go wrong: making sure we never charged for a check that failed to actually send, validating every webhook with HMAC so we couldn't be spoofed, and building a retry queue with proper idempotency so a webhook redelivery — which the provider explicitly guarantees can happen — couldn't double-process a result or double-charge. It's the project that best represents designing for failure modes upfront rather than bolting them on after an incident."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Walk me through exactly how the retry queue and idempotency worked, in detail.</li>
+          <li>What would you do differently if you rebuilt that integration today?</li>
+          <li>What was the hardest bug you hit while building it?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Picking the right "proudest work" story — favor DEPTH over polish:
+
+Good sign:  You can go 3-4 follow-up questions deep on it without running dry
+Bad sign:   The whole story is basically fully told in the first 60 seconds
+
+The Yardstik integration qualifies because it has real layered complexity:
+charge-before-send ordering, HMAC signature validation, retry + idempotency —
+each layer is its own mini technical story if the interviewer digs in.</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Choose a story with enough real depth to sustain several rounds of technical follow-up, not just a clean one-line summary.</li>
+          <li>Let genuine pride show here specifically — false modesty undersells real, hard-won work in the one moment it's expected.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 8 ============ -->
+      <section class="topic" data-topic="8" id="t8">
+        <div class="topic-head">
+          <h2><span class="tagnum">08.</span> Explaining an Employment Gap or Layoff</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="8">☆</button>
+            <button class="check-btn" data-ck="8">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A layoff or gap is common and, on its own, rarely a red flag to an experienced interviewer — what actually matters is <em>how</em> you talk about it: brief, factual, no defensiveness, no oversharing, and no negative words about the previous employer regardless of the real circumstances. The strongest answers state the fact plainly in one sentence, then pivot quickly and confidently to what you've been doing with the time or what you're looking for next — treating it as a small factual detail on the way to the more interesting part of the conversation, not the centerpiece of the answer.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>They're not trying to catch you out — they're checking for composure and professionalism talking about a setback, and whether you'll speak negatively about a past employer, which is itself a small preview of how you'd talk about them later if things ever went sideways.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Directly your current situation: a brief, factual statement about the role ending, followed immediately by pivoting to the concrete, structured things you've been doing since — sharpening interview fundamentals, working through system design case studies, staying technically engaged — turns a potentially awkward moment into a demonstration of initiative and self-direction instead.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Being defensive, over-explaining, or oversharing details about the circumstances — a brief, neutral statement is both more professional and more convincing than a long justification.</li>
+          <li>Speaking negatively or bitterly about the previous employer, even if the situation genuinely felt unfair — it reads as a risk signal regardless of whether the criticism is fair.</li>
+          <li>Letting the gap itself dominate the answer instead of quickly pivoting to what you've been actively doing since — the pivot is the actual content the interviewer wants to hear.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"My last role ended as part of a layoff — it wasn't performance-related, just a broader business decision. Since then I've been treating the time deliberately rather than just applying broadly: I built out a structured interview prep process covering everything from core fundamentals to system design case studies, and I've kept building — including a background-check API integration architecture and a full booking platform refactor before that role ended, so the technical muscle hasn't gone anywhere. I'm looking for a role where I can bring that same kind of ownership again."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How long have you been job searching, and how's that process been going?</li>
+          <li>Were there other people let go at the same time, or was it isolated?</li>
+          <li>What have you learned about what you want in your next role, from this search?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Gap/layoff answer formula:
+
+1. ONE sentence, factual, neutral — no negative words about the employer
+2. Immediate pivot to what you've been doing with the time (concrete, specific)
+3. Forward-looking close — what you're looking for next
+
+Keep the ratio roughly: 10% on the fact itself, 90% on the pivot forward.
+The interviewer is listening for composure and initiative, not the backstory.</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Rehearse this answer specifically until it feels completely neutral and unbothered in delivery — tone matters more than wording here.</li>
+          <li>Always have a genuinely concrete, specific answer ready for "what have you been doing since" — vague answers here undercut an otherwise strong pivot.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 9 ============ -->
+      <section class="topic" data-topic="9" id="t9">
+        <div class="topic-head">
+          <h2><span class="tagnum">09.</span> Salary Negotiation &amp; Career Goals</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="9">☆</button>
+            <button class="check-btn" data-ck="9">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> The core negotiation principle: whoever names a specific number first tends to anchor the negotiation around it, so the goal early on is to defer with a reasonable, researched range rather than a precise figure, while still engaging genuinely rather than dodging the question entirely (which can read as evasive). Researching market rate for the specific role, location, and experience level beforehand turns this from a guessing game into an informed conversation. For career goals questions, the strongest answers connect your stated goals authentically to what the specific role actually offers, rather than a generic ambition that could apply to any job at any company.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Salary questions test whether you're informed and can advocate for yourself professionally without being either underprepared (naming a number far below market) or unreasonably rigid; career goals questions test whether you've actually thought about fit, or are just applying broadly without real direction.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Given the current market and a recent layoff, there can be real pressure to just accept whatever's offered — but going in with actual researched numbers for backend/full-stack roles at your experience level in your target market (or a remote-adjusted range if relevant) means the conversation starts from an informed position rather than uncertainty, regardless of how the search has been going.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Naming a specific number first without having researched market rate, either underselling yourself out of pressure to just get an offer, or naming something wildly out of range.</li>
+          <li>Refusing to engage with the question at all ("I'd rather not say") in a way that reads as evasive rather than strategic — a range, offered with genuine engagement, is usually the better move.</li>
+          <li>Giving a generic career-goals answer ("I want to keep growing as a developer") that could apply to literally any job at any company, signaling you haven't actually thought about why this specific role.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"On compensation, I'd want to understand the full scope of the role first, but based on my research for backend-focused full-stack roles at my experience level, I'd expect something in the range of [researched range] — I'm open to discussing based on the complete picture including benefits and growth trajectory. On career goals, I'm specifically looking for a role where I can keep building the kind of ownership I had leading the CampVine refactor — real architectural responsibility, not just ticket-by-ticket feature work — which is exactly why this role's emphasis on [something specific from the job posting] stood out to me."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What if the offer comes in below your stated range?</li>
+          <li>Where do you see yourself in 3-5 years?</li>
+          <li>What matters more to you right now — compensation, growth, or stability?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Salary negotiation principles:
+
+1. Research market rate BEFORE the conversation, not during it
+2. Give a RANGE, not a single precise number, when asked to go first
+3. Try to get them to name a number first where possible ("What's budgeted
+   for this role?") — whoever anchors first has less room to move
+4. Engage genuinely — refusing to answer at all reads as evasive, not savvy</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always research actual current market rate for your specific role/experience/location before any conversation, not after.</li>
+          <li>Tie career-goals answers to something specific and genuine about the actual role/company, not a generic statement.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 10 ============ -->
+      <section class="topic" data-topic="10" id="t10">
+        <div class="topic-head">
+          <h2><span class="tagnum">10.</span> "Why Should We Hire You?" &amp; Closing the Interview Strong</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="10">☆</button>
+            <button class="check-btn" data-ck="10">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> This is a synthesis question, not a new one — the strongest answers pull together threads already established earlier in the interview (a specific strength, a proof point from a story you already told) rather than introducing brand-new claims at the very end. Closing an interview strong also means having 2-3 genuinely good questions prepared to ask the interviewer — not "what's the culture like" (generic, low-signal), but something specific that shows you've thought about the role and are evaluating fit both ways, not just being evaluated.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>It's the interview's final chance for you to make your own case directly and concisely, and the questions you ask at the end are themselves being evaluated — thoughtful questions signal genuine engagement and due diligence, the same instinct that matters on the actual job.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A strong close ties your backend-focused ownership story (CampVine, Yardstik) directly to whatever the role actually needs — if the job posting emphasizes owning a legacy system's modernization, that's an almost direct match to the exact experience you already have and already discussed earlier in the interview.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Introducing a brand new claim or story at the very end instead of reinforcing what's already been established — feels disconnected from the rest of the conversation.</li>
+          <li>Having no questions prepared, or only asking questions whose answers are already on the company website — signals a lack of genuine engagement.</li>
+          <li>Asking only about compensation/benefits/time-off in the first round when it's premature — save those for later in the process, once there's mutual interest established.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Based on what we've talked about, I think the strongest thing I bring is real ownership experience with exactly the kind of problem this role seems to involve — modernizing and maintaining a system that's grown organically, which is precisely what I did leading the CampVine refactor, plus the breadth across Laravel, Node, and React to work wherever the actual problem lives rather than being boxed into one layer of the stack. I'm confident I could get productive quickly and also bring real architectural judgment, not just implementation." <br><br>Questions to ask back: "What does the biggest technical challenge on this team look like right now?" / "How does the team currently handle [something specific to their stack, e.g. background job failures or schema migrations]?" / "What would success in this role look like at the 6-month mark?"</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What questions do you have for us? (Always have 2-3 ready, specific to this company.)</li>
+          <li>Is there anything about your background you'd like to clarify before we wrap up?</li>
+          <li>What would make you excited to accept an offer here specifically?</li>
+        </ul>
+
+        <pre><code><span class="cmt">Good closing questions — specific, shows real engagement:
+
+✓ "What does the biggest technical challenge on this team look like right now?"
+✓ "How is [specific relevant tech, e.g. the queue/job system] currently handled?"
+✓ "What would success in this role look like at the 3 and 6 month mark?"
+
+Weak closing questions — generic, answerable from the careers page:
+
+✗ "What's the company culture like?"
+✗ "Do you offer remote work?" (fine LATER, weak as your only question here)</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Close by reinforcing what's already been established in the conversation, not introducing something new.</li>
+          <li>Prepare specific, role-relevant questions in advance — generic questions are a missed opportunity to show genuine engagement.</li>
+        </ul>
+      </section>
+
+      <!-- ============ RAPID FIRE ============ -->
+      <section class="topic" id="rapidfire">
+        <div class="topic-head"><h2><span class="tagnum">⚡</span> Rapid-Fire Prompts — HR &amp; Behavioral</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">Click any prompt to reveal a short framing note on how to approach it — these are prompts to prepare a story for, not questions with one fixed answer.</p>
+        <div class="rapid-grid" id="rapid-grid"></div>
+      </section>
+
+      <!-- ============ CHEAT SHEET ============ -->
+      <section class="topic" id="cheatsheet-section">
+        <div class="topic-head"><h2><span class="tagnum">📋</span> Printable Revision Cheat Sheet</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">One line per concept — for the 10 minutes before you walk in.</p>
+        <div class="cheatsheet">
+          <table>
+            <tr><th>Concept</th><th>One-line answer</th></tr>
+            <tr><td>STAR</td><td>Situation, Task, Action, Result — Action should be the bulk of the answer.</td></tr>
+            <tr><td>"Tell me about yourself"</td><td>Present → Past → Future, under 90 seconds, tailored to the specific role.</td></tr>
+            <tr><td>Weakness formula</td><td>Real flaw + honest impact + concrete ongoing action — never a disguised strength.</td></tr>
+            <tr><td>Conflict story</td><td>Professional disagreement + genuine engagement with their view + clear resolution.</td></tr>
+            <tr><td>Leadership (no direct reports)</td><td>Reframe as ownership/influence — driving a decision end-to-end without formal authority.</td></tr>
+            <tr><td>Failure story</td><td>Real mistake, owned plainly, fixed immediately, PLUS a durable process change after.</td></tr>
+            <tr><td>Proudest work</td><td>Pick something with enough depth to survive 3-4 rounds of technical follow-up.</td></tr>
+            <tr><td>Layoff/gap answer</td><td>~10% on the fact (neutral, brief), ~90% pivoting to what you've done since.</td></tr>
+            <tr><td>Never do</td><td>Speak negatively about a past employer, regardless of the real circumstances.</td></tr>
+            <tr><td>Salary anchoring</td><td>Whoever names a number first anchors the negotiation — defer to a researched range.</td></tr>
+            <tr><td>Career goals answer</td><td>Tie authentically to something specific about THIS role, not a generic ambition.</td></tr>
+            <tr><td>"Why should we hire you"</td><td>Synthesize threads already established earlier — don't introduce brand-new claims.</td></tr>
+            <tr><td>Good closing questions</td><td>Specific to the team/stack/challenges — never answerable from the careers page.</td></tr>
+            <tr><td>Weak closing questions</td><td>"What's the culture like" / benefits-only questions in an early round.</td></tr>
+            <tr><td>Answer length target</td><td>Most behavioral answers: 60-90 seconds unless explicitly asked to go deeper.</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ COMPLETION BANNER ============ -->
+      <section class="topic">
+        <div class="completion-banner">
+          <div class="big">7 / 7</div>
+          <p>All seven chapters complete — JavaScript &amp; DOM, React &amp; Next.js, Node.js &amp; Backend Design, PHP &amp; Laravel, Database &amp; SQL, System Design, and HR &amp; Project Stories. Good luck out there.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="part-footer">
+      <div class="next"><b>Handbook complete</b>All 7 chapters are done — open each file's progress tracker to see how much you've reviewed.</div>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">Part 7 of 7 · HR &amp; Project Stories · complete</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const typedEl = document.getElementById('typed');
+const typedText = "$ interview-prep --chapter=7 --final --topic=behavioral";
+let ti = 0;
+function typeStep(){
+  if(ti <= typedText.length){ typedEl.textContent = typedText.slice(0, ti); ti++; setTimeout(typeStep, 18); }
+}
+typeStep();
+
+const topics = [
+  {id:1, title:'The STAR Method'},
+  {id:2, title:'"Tell Me About Yourself"'},
+  {id:3, title:'Strengths & Weaknesses'},
+  {id:4, title:'Conflict & Disagreement Stories'},
+  {id:5, title:'Leadership & Ownership'},
+  {id:6, title:'Failure & Mistakes'},
+  {id:7, title:'Achievements & Proudest Work'},
+  {id:8, title:'Explaining an Employment Gap'},
+  {id:9, title:'Salary Negotiation & Career Goals'},
+  {id:10, title:'"Why Should We Hire You" & Closing'},
+];
+
+const tocEl = document.getElementById('toc');
+topics.forEach(t=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#t${t.id}" data-toc="${t.id}">${String(t.id).padStart(2,'0')}. ${t.title}</a>`;
+  tocEl.appendChild(li);
+});
+
+const LS_CHECK = 'ip_ch7_checked';
+const LS_BOOKMARK = 'ip_ch7_bookmarks';
+const getChecked = () => JSON.parse(localStorage.getItem(LS_CHECK) || '[]');
+const setChecked = (arr) => localStorage.setItem(LS_CHECK, JSON.stringify(arr));
+const getBookmarks = () => JSON.parse(localStorage.getItem(LS_BOOKMARK) || '[]');
+const setBookmarks = (arr) => localStorage.setItem(LS_BOOKMARK, JSON.stringify(arr));
+
+function refreshProgress(){
+  const checked = getChecked();
+  document.getElementById('progress-text').textContent = `${checked.length} / ${topics.length}`;
+  document.getElementById('progress-fill').style.width = (checked.length/topics.length*100) + '%';
+  document.querySelectorAll('.check-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-ck');
+    btn.classList.toggle('active', checked.includes(id));
+  });
+  document.querySelectorAll('.toc a[data-toc]').forEach(a=>{
+    a.classList.toggle('done', checked.includes(a.getAttribute('data-toc')));
+  });
+}
+
+function refreshBookmarks(){
+  const bm = getBookmarks();
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-bm');
+    btn.classList.toggle('active', bm.includes(id));
+    btn.textContent = bm.includes(id) ? '★' : '☆';
+  });
+  const list = document.getElementById('bookmark-list');
+  if(bm.length === 0){
+    list.innerHTML = '<li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li>';
+    return;
+  }
+  list.innerHTML = bm.map(id=>{
+    const t = topics.find(t=>String(t.id)===String(id));
+    return t ? `<li><a href="#t${t.id}">★ ${t.title}</a></li>` : '';
+  }).join('');
+}
+
+document.querySelectorAll('.check-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-ck');
+    let checked = getChecked();
+    checked = checked.includes(id) ? checked.filter(x=>x!==id) : [...checked, id];
+    setChecked(checked);
+    refreshProgress();
+  });
+});
+
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-bm');
+    let bm = getBookmarks();
+    bm = bm.includes(id) ? bm.filter(x=>x!==id) : [...bm, id];
+    setBookmarks(bm);
+    refreshBookmarks();
+  });
+});
+
+refreshProgress();
+refreshBookmarks();
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const codeText = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(codeText).then(()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(()=> btn.textContent = orig, 1200);
+    });
+  });
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('section.topic[data-topic]').forEach(sec=>{
+    const text = sec.innerText.toLowerCase();
+    sec.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+
+const rapidFire = [
+  ["Tell me about a time you had to learn something completely new quickly.", "Pick a real technical example — a new API integration (Yardstik), a new architectural pattern (DDD) — and focus on your learning process, not just the fact that you succeeded."],
+  ["Describe a time you disagreed with a deadline or scope.", "Show how you communicated the trade-off (scope vs time vs quality) professionally rather than either silently complying or refusing outright."],
+  ["Tell me about a time you had to prioritize between multiple urgent tasks.", "Walk through your actual reasoning for the prioritization — what made one thing more urgent/important than another, not just that you 'managed it.'"],
+  ["How do you handle receiving critical feedback on your code?", "Emphasize separating the feedback from your ego — treating it as information about the code, not a judgment of you personally, and give a specific example if possible."],
+  ["Describe a time you had to work with incomplete or unclear requirements.", "The CampVine refactor is a strong source here — no formal spec, you had to define the actual scope and approach yourself."],
+  ["Tell me about a time you went above and beyond what was asked.", "Pick something with a clear 'this wasn't technically my job but I did it anyway' angle and a concrete result, not just extra hours worked."],
+  ["How do you stay current with new technology and best practices?", "Be specific — name actual habits (structured study, specific resources, projects you build to learn) rather than a vague 'I read blogs.'"],
+  ["Describe your ideal work environment.", "Answer honestly but frame it in terms of what helps you do your best work, tied to something you can point to from real past experience."],
+  ["Tell me about a time you had to say no to a request.", "Show that you gave a clear reason and, ideally, an alternative — not just a flat refusal."],
+  ["How do you handle working under pressure or a tight deadline?", "A concrete example beats a general philosophy — describe an actual crunch period and what you specifically did differently."],
+  ["Describe a time you mentored or helped a less experienced teammate.", "If you haven't formally mentored, code review feedback or pairing with someone newer counts — be honest about the actual scope."],
+  ["Tell me about a time a project didn't go as planned.", "Distinct from the 'failure' story — this can be about external factors (changing requirements, a dependency falling through) and how you adapted, not necessarily your own mistake."],
+  ["What's something you've changed your mind about professionally in the last year?", "Shows intellectual honesty and growth — pick something genuine, like a shift in how you approach testing or architecture."],
+  ["How do you approach code review, both giving and receiving?", "Emphasize being specific and constructive when giving feedback, and receptive rather than defensive when receiving it."],
+  ["Tell me about a time you had to give unwelcome feedback to someone.", "Focus on how you framed it constructively and specifically, rather than just that it was awkward."],
+  ["What does a 'good day at work' look like for you?", "Be specific and genuine — ties naturally into what kind of role/environment you're actually looking for next."],
+  ["Describe a time you took a calculated risk.", "A technical decision with real trade-offs (choosing a newer pattern, an architectural bet) works well here, framed around your reasoning process."],
+  ["How do you handle ambiguity in what 'done' means for a task?", "Show that you proactively clarify scope/definition of done rather than guessing and hoping it matches expectations."],
+  ["Tell me about a time you had to work with a difficult stakeholder.", "Keep it professional and focus on the communication strategy you used, not on characterizing the person negatively."],
+  ["What motivates you day to day as a developer?", "Be specific and genuine — generic answers ('solving problems') are forgettable; tie it to something real from your actual work."],
+  ["How do you approach documentation and knowledge sharing?", "Concrete habits — writing things down as you go, README updates, comments on non-obvious decisions — beat a vague 'documentation is important.'"],
+  ["Tell me about a time you had to debug something with very little information.", "A production incident story works well — walk through your actual diagnostic process, not just the eventual fix."],
+  ["What's a technical opinion you hold strongly?", "Have a genuine, defensible one ready (e.g. on testing philosophy, or naive TTL caching vs explicit invalidation) rather than something generic and uncontroversial."],
+  ["How do you balance speed and code quality under deadline pressure?", "Show you make that trade-off deliberately and communicate it, rather than either always cutting corners silently or refusing to ever compromise."],
+  ["What questions do you still have for us at this point?", "Always have 2-3 specific, role-relevant questions ready — see Topic 10 for good vs weak examples."],
+];
+const grid = document.getElementById('rapid-grid');
+rapidFire.forEach(([q,a])=>{
+  const d = document.createElement('details');
+  d.className = 'qa';
+  d.innerHTML = `<summary>${q}</summary><div class="ans">${a}</div>`;
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>
