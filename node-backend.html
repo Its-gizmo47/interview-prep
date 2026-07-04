@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep :: Part 3 — Node.js &amp; Backend Design</title>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --surface:#11151c;
+    --surface-alt:#171c26;
+    --border:#232936;
+    --text:#d7dce3;
+    --text-dim:#8b93a1;
+    --text-faint:#5c6472;
+    --accent:#e3b341;
+    --accent-dim:#8a6d2a;
+    --cyan:#5fd3bc;
+    --red:#e8735c;
+    --green:#6fcf97;
+    --mono: 'SF Mono', 'Fira Code', Consolas, Menlo, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 6px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.65; }
+  ::selection{background:var(--accent); color:#161616;}
+  a{color:var(--cyan);}
+  code, pre{font-family:var(--mono);}
+  code{background:var(--surface-alt); padding:2px 6px; border-radius:4px; color:var(--accent); font-size:0.87em;}
+
+  #app{display:flex; min-height:100vh;}
+  #sidebar{
+    width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+    position:fixed; top:0; left:0; bottom:0; overflow-y:auto; padding:20px 16px 40px;
+  }
+  #main{margin-left:300px; flex:1; min-width:0; padding:0;}
+  @media (max-width: 900px){
+    #sidebar{position:relative; width:100%; height:auto; border-right:none; border-bottom:1px solid var(--border);}
+    #main{margin-left:0;}
+    #app{flex-direction:column;}
+  }
+
+  .brand{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:0.5px; margin-bottom:4px;}
+  .brand-title{font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:18px; font-weight:600;}
+  #search{
+    width:100%; padding:9px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:6px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+  .search-hint{font-size:11px; color:var(--text-faint); margin-bottom:18px; font-family:var(--mono);}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--bg); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s;}
+
+  .chapters{list-style:none; padding:0; margin:0 0 20px;}
+  .chapters li{margin-bottom:2px;}
+  .chapters a{
+    display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text-dim);
+    font-size:13px; padding:7px 8px; border-radius:var(--radius);
+  }
+  .chapters a.active, .chapters li.current a{color:var(--accent); background:var(--surface-alt);}
+  .chapters .chnum{font-family:var(--mono); color:var(--text-faint); font-size:11px; width:18px; flex-shrink:0;}
+  .chapters li.current .chnum{color:var(--accent);}
+  .chapters .soon{font-size:10px; color:var(--text-faint); font-family:var(--mono); margin-left:auto;}
+  .chapters .done-tag{font-size:10px; color:var(--green); font-family:var(--mono); margin-left:auto;}
+
+  .toc{list-style:none; padding:0; margin:0;}
+  .toc-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;}
+  .toc li a{
+    display:block; text-decoration:none; color:var(--text-dim); font-size:12.5px; padding:5px 8px 5px 20px;
+    border-left:2px solid transparent; border-radius:0 4px 4px 0;
+  }
+  .toc li a:hover{color:var(--text);}
+  .toc li a.done{color:var(--green);}
+  .toc li a.done::before{content:"✓ "; color:var(--green);}
+
+  .hero{
+    padding:56px 48px 40px; border-bottom:1px solid var(--border);
+    background: radial-gradient(600px 200px at 85% -20%, rgba(227,179,65,0.08), transparent);
+  }
+  .hero-eyebrow{font-family:var(--mono); color:var(--text-faint); font-size:12px; margin-bottom:10px;}
+  #typed{font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:18px; min-height:18px;}
+  #typed::after{content:"█"; animation:blink 1s step-start infinite; color:var(--accent);}
+  @keyframes blink{50%{opacity:0;}}
+  .hero h1{font-family:var(--mono); font-size:clamp(28px,4vw,42px); margin:0 0 14px; color:#fff; line-height:1.25;}
+  .hero p{color:var(--text-dim); max-width:680px; font-size:15px;}
+  .hero-stats{display:flex; gap:28px; margin-top:26px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono);}
+  .stat b{color:var(--accent); font-size:20px; display:block;}
+  .stat span{color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .content{padding:8px 48px 80px; max-width:920px;}
+  section.topic{border-bottom:1px solid var(--border); padding:36px 0;}
+  section.topic:first-of-type{padding-top:28px;}
+
+  .topic-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px;}
+  .topic-head h2{font-family:var(--mono); font-size:22px; color:#fff; margin:0; display:flex; align-items:center; gap:10px;}
+  .topic-head h2 .tagnum{color:var(--accent);}
+  .topic-controls{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .diff{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;}
+  .diff.mid{color:var(--accent); border-color:var(--accent-dim);}
+  .diff.senior{color:var(--red); border-color:#5a3229;}
+  .star-btn, .check-btn{
+    background:none; border:1px solid var(--border); color:var(--text-faint); cursor:pointer;
+    border-radius:5px; padding:5px 8px; font-size:14px; line-height:1;
+  }
+  .star-btn.active{color:var(--accent); border-color:var(--accent-dim);}
+  .check-btn.active{color:var(--green); border-color:#2c5a41;}
+
+  .subhead{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin:22px 0 8px;}
+  .subhead.mistakes{color:var(--red);}
+  .subhead.best{color:var(--green);}
+  .topic p{margin:0 0 10px; color:var(--text);}
+  .topic ul{margin:6px 0 10px; padding-left:20px;}
+  .topic li{margin-bottom:5px; color:var(--text);}
+
+  pre{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; font-size:12.8px; position:relative; margin:10px 0;
+  }
+  pre code{background:none; padding:0; color:var(--text);}
+  .kw{color:#c586c0;} .str{color:var(--green);} .cmt{color:var(--text-faint); font-style:italic;} .fn{color:#5fb3d3;} .num{color:#e3b341;} .var{color:#9cdcfe;}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-dim); font-family:var(--mono); font-size:10.5px; padding:4px 8px; border-radius:4px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--accent);}
+
+  .callout{border-left:3px solid var(--accent); background:var(--surface); padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim);}
+  .followups{list-style:none; padding:0; margin:8px 0;}
+  .followups li{ font-size:13.5px; color:var(--text-dim); padding:6px 0 6px 18px; position:relative; border-bottom:1px dashed var(--border); }
+  .followups li::before{content:"↳"; position:absolute; left:0; color:var(--text-faint);}
+  .followups li:last-child{border-bottom:none;}
+
+  .rapid-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 32px;}
+  @media (max-width:700px){.rapid-grid{grid-template-columns:1fr;}}
+  details.qa{border-bottom:1px solid var(--border); padding:10px 0;}
+  details.qa summary{cursor:pointer; color:var(--text); font-size:13.5px; list-style:none; display:flex; gap:8px;}
+  details.qa summary::before{content:"▸"; color:var(--accent); flex-shrink:0;}
+  details.qa[open] summary::before{content:"▾";}
+  details.qa summary::-webkit-details-marker{display:none;}
+  details.qa .ans{padding:8px 0 0 18px; color:var(--text-dim); font-size:13px;}
+
+  .part-footer{
+    padding:50px 48px; border-top:1px solid var(--border); background:var(--surface);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+  }
+  .part-footer .next{font-family:var(--mono); color:var(--text-dim); font-size:13px;}
+  .part-footer .next b{color:var(--accent); display:block; font-size:15px; margin-bottom:4px;}
+  .kbd{font-family:var(--mono); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--text-dim);}
+
+  .cheatsheet{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:22px 26px; margin:20px 0;}
+  .cheatsheet table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cheatsheet th{text-align:left; font-family:var(--mono); color:var(--text-faint); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);}
+  .cheatsheet td{padding:7px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); vertical-align:top;}
+  .cheatsheet td:first-child{color:var(--accent); font-family:var(--mono); white-space:nowrap;}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="brand">$ interview-prep --guide</div>
+    <div class="brand-title">Full-Stack Interview Handbook</div>
+
+    <input type="text" id="search" placeholder="/ search this chapter…" autocomplete="off">
+    <div class="search-hint">press <span class="kbd">/</span> to focus · <span class="kbd">esc</span> to clear</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>CH.3 PROGRESS</span><span id="progress-text">0 / 10</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <ul class="chapters">
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">01</span> JavaScript + DOM <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">02</span> React + Next.js <span class="done-tag">done</span></a></li>
+      <li class="current"><a href="#top"><span class="chnum">03</span> Node.js + Backend Design</a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">04</span> PHP + Laravel <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">05</span> Database + SQL <span class="done-tag">done</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">06</span> System Design <span class="soon">soon</span></a></li>
+      <li><a href="#" onclick="return false;" style="cursor:default;"><span class="chnum">07</span> HR + Project Stories <span class="soon">soon</span></a></li>
+    </ul>
+
+    <div class="toc-title">On this page</div>
+    <ul class="toc" id="toc"></ul>
+
+    <div class="toc-title">Bookmarks</div>
+    <ul class="toc" id="bookmark-list"><li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li></ul>
+  </aside>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="hero-eyebrow">CHAPTER 3 OF 7 · RUNTIME &amp; ARCHITECTURE LAYER</div>
+      <div id="typed"></div>
+      <h1>Node.js &amp; Backend Design,<br>from libuv internals to system-level architecture calls</h1>
+      <p>Ten core topics — the Node event loop's actual phases, streams &amp; buffers, Express middleware, REST API design, auth strategies, rate limiting &amp; security, caching &amp; CDNs, webhooks &amp; message queues, microservices vs monolith, and WebSockets — each broken down the same way as the earlier chapters. Then 25 rapid-fire questions and a cheat sheet.</p>
+      <div class="hero-stats">
+        <div class="stat"><b>10</b><span>Deep Topics</span></div>
+        <div class="stat"><b>25</b><span>Rapid Fire Q&amp;A</span></div>
+        <div class="stat"><b>30+</b><span>Code Examples</span></div>
+        <div class="stat"><b>1</b><span>Chapters Remaining</span></div>
+      </div>
+    </section>
+
+    <div class="content">
+
+      <!-- ============ TOPIC 1 ============ -->
+      <section class="topic" data-topic="1" id="t1">
+        <div class="topic-head">
+          <h2><span class="tagnum">01.</span> Node's Event Loop Phases &amp; libuv</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="1">☆</button>
+            <button class="check-btn" data-ck="1">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Node's event loop, implemented by <strong>libuv</strong>, runs through distinct <strong>phases</strong> each cycle, not just the simplified "microtask vs macrotask" model browsers get taught with: <strong>timers</strong> (runs due <code>setTimeout</code>/<code>setInterval</code> callbacks), <strong>pending callbacks</strong>, <strong>poll</strong> (retrieves new I/O events — the phase where most work happens, including reading files/sockets), <strong>check</strong> (runs <code>setImmediate</code> callbacks), and <strong>close callbacks</strong>. Between every phase transition, Node drains the microtask queue (Promises) <em>and</em> Node's own <code>process.nextTick</code> queue — with <code>nextTick</code> callbacks running before Promise microtasks, giving Node a slightly different ordering guarantee than a browser. CPU-bound work (heavy synchronous loops, expensive JSON parsing, image processing) blocks this single thread entirely — I/O is what Node offloads efficiently (via libuv's thread pool for filesystem/DNS, and the OS's async I/O for networking), not general computation.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This tests real Node-specific depth beyond the generic browser event loop model — knowing the phase names and, more importantly, knowing that <em>CPU-bound work still blocks Node</em> despite it being "async by default," which is the root cause of a very real class of production incidents (a slow request handler stalling every other concurrent request).</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A synchronous, computationally heavy operation — generating a large PDF report, hashing a big payload, deep JSON transformation — inside a request handler blocks the entire Node process, meaning every other concurrent user's request stalls until it finishes; this is exactly the kind of bug that doesn't show up in local testing with one user but cripples a production API under real concurrent load.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Assuming Node is "non-blocking" means CPU-bound work is also handled asynchronously — it isn't; only I/O is offloaded, CPU-bound synchronous code still fully blocks the single thread.</li>
+          <li>Confusing <code>setImmediate</code> with <code>setTimeout(fn, 0)</code> — they run in different phases, and their relative ordering actually depends on whether they're scheduled from within an I/O callback or not.</li>
+          <li>Not knowing <code>process.nextTick</code> runs before Promise microtasks and can, if abused recursively, starve the event loop entirely, since it's drained fully before moving to the next phase.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The event loop in Node runs through concrete phases via libuv — timers, I/O callbacks, poll, check for setImmediate, close callbacks — with process.nextTick and Promise microtasks draining fully between each phase transition, nextTick first. The thing that actually matters day to day though is that Node only offloads I/O asynchronously — CPU-bound synchronous work, like a heavy computation or a large synchronous JSON transform, still fully blocks the single thread, stalling every other concurrent request. For genuinely CPU-heavy work I'd move it to a worker thread or a separate queued job rather than running it inline in a request handler."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why can a single slow synchronous operation in one request affect every other concurrent user?</li>
+          <li>What's the difference between setImmediate and setTimeout(fn, 0), and does their ordering ever flip?</li>
+          <li>How would you move genuinely CPU-heavy work off the main thread in Node?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// CPU-bound work blocks EVERY concurrent request — a real production trap</span>
+app.<span class="fn">get</span>(<span class="str">'/report'</span>, (req, res) => {
+  <span class="kw">const</span> result = <span class="fn">expensiveSyncComputation</span>(); <span class="cmt">// blocks the whole process until done</span>
+  res.<span class="fn">json</span>(result);
+});
+
+<span class="cmt">// Fix: offload to a worker thread, keep the main thread free for I/O</span>
+<span class="kw">const</span> { Worker } = <span class="fn">require</span>(<span class="str">'worker_threads'</span>);
+app.<span class="fn">get</span>(<span class="str">'/report'</span>, (req, res) => {
+  <span class="kw">const</span> worker = <span class="kw">new</span> <span class="fn">Worker</span>(<span class="str">'./report-worker.js'</span>);
+  worker.<span class="fn">on</span>(<span class="str">'message'</span>, result => res.<span class="fn">json</span>(result));
+});
+
+<span class="cmt">// process.nextTick runs before Promise microtasks, both before the next phase</span>
+<span class="kw">Promise</span>.<span class="fn">resolve</span>().<span class="fn">then</span>(() => <span class="kw">console</span>.<span class="fn">log</span>(<span class="str">'promise microtask'</span>));
+process.<span class="fn">nextTick</span>(() => <span class="kw">console</span>.<span class="fn">log</span>(<span class="str">'nextTick — runs first'</span>));</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Move genuinely CPU-intensive work to worker threads or a background job queue — never run it inline in a request handler.</li>
+          <li>Avoid recursive process.nextTick calls that never let the loop move to the next phase — a real starvation risk.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 2 ============ -->
+      <section class="topic" data-topic="2" id="t2">
+        <div class="topic-head">
+          <h2><span class="tagnum">02.</span> Streams &amp; Buffers</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="2">☆</button>
+            <button class="check-btn" data-ck="2">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>Buffer</strong> is Node's way of handling raw binary data directly in memory — fixed-size, outside the V8 heap. A <strong>stream</strong> processes data incrementally in chunks rather than loading an entire resource into memory at once — critical for large files, network responses, or any data too big (or too slow-arriving) to buffer wholly upfront. Node has four stream types: <strong>Readable</strong> (a source, like a file read or HTTP request body), <strong>Writable</strong> (a destination, like a file write or HTTP response), <strong>Duplex</strong> (both, like a TCP socket), and <strong>Transform</strong> (a duplex stream that modifies data as it passes through, like gzip compression). <code>.pipe()</code> connects streams together and automatically handles <strong>backpressure</strong> — pausing a fast producer when a slower consumer can't keep up, preventing unbounded memory growth.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Streams are the difference between a service that handles a 10MB file fine and crashes on a 2GB one — this topic tests whether you understand Node's actual memory model for I/O-heavy work, which matters directly for any file upload/download or large data export feature.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Generating a large CSV export of bookings and sending it directly to the HTTP response as a stream, rather than building the entire CSV string in memory first, keeps memory usage flat and constant regardless of whether the export is 100 rows or 500,000 — loading it all into memory first is exactly the kind of thing that works fine in development and then crashes the process in production under real data volume.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Loading an entire large file into memory (<code>fs.readFileSync</code>) before processing or sending it, when a stream would process it incrementally with constant memory usage regardless of file size.</li>
+          <li>Manually piping data without accounting for backpressure, allowing a fast producer to overwhelm a slow consumer's memory buffer — exactly what <code>.pipe()</code> and proper stream event handling exists to prevent.</li>
+          <li>Not handling stream error events — an unhandled <code>'error'</code> event on a stream crashes the process, unlike a rejected promise which at least surfaces as an unhandled rejection warning.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"Anytime I'm dealing with a file or dataset that could be large or arrives incrementally, I reach for streams instead of loading everything into memory first — a CSV export of bookings piped straight to the HTTP response keeps memory flat whether it's 100 rows or 500,000, where building the full string first would eventually crash the process at scale. The part that's easy to get wrong is backpressure — .pipe() handles it automatically by pausing the readable side when the writable side's buffer is full, but if I'm manually consuming stream events instead of piping, I have to handle that pause/resume myself or risk unbounded memory growth."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What is backpressure, and how does .pipe() handle it automatically?</li>
+          <li>What happens if a stream emits an 'error' event with no listener attached?</li>
+          <li>When would you use a Transform stream? Give a concrete example.</li>
+        </ul>
+
+        <pre><code><span class="kw">const</span> fs = <span class="fn">require</span>(<span class="str">'fs'</span>);
+<span class="kw">const</span> zlib = <span class="fn">require</span>(<span class="str">'zlib'</span>);
+
+<span class="cmt">// Stream a large export straight to the response — constant memory usage</span>
+app.<span class="fn">get</span>(<span class="str">'/export.csv'</span>, (req, res) => {
+  res.<span class="fn">setHeader</span>(<span class="str">'Content-Type'</span>, <span class="str">'text/csv'</span>);
+  <span class="kw">const</span> bookingStream = <span class="fn">getBookingsCsvStream</span>(); <span class="cmt">// a Readable stream</span>
+  bookingStream.<span class="fn">on</span>(<span class="str">'error'</span>, (err) => { <span class="fn">logError</span>(err); res.<span class="fn">status</span>(<span class="num">500</span>).<span class="fn">end</span>(); });
+  bookingStream.<span class="fn">pipe</span>(res); <span class="cmt">// backpressure handled automatically</span>
+});
+
+<span class="cmt">// Piping through a Transform stream (gzip) — data modified as it flows through</span>
+fs.<span class="fn">createReadStream</span>(<span class="str">'large-file.txt'</span>)
+  .<span class="fn">pipe</span>(zlib.<span class="fn">createGzip</span>())
+  .<span class="fn">pipe</span>(fs.<span class="fn">createWriteStream</span>(<span class="str">'large-file.txt.gz'</span>));</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Default to streaming for anything large or unbounded (file exports, uploads, large API responses) instead of buffering fully in memory.</li>
+          <li>Always attach an error listener to every stream in a pipeline — an unhandled stream error crashes the process.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 3 ============ -->
+      <section class="topic" data-topic="3" id="t3">
+        <div class="topic-head">
+          <h2><span class="tagnum">03.</span> Express Middleware &amp; the Request Lifecycle</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="3">☆</button>
+            <button class="check-btn" data-ck="3">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Express middleware is a chain of functions, each receiving <code>(req, res, next)</code>, that a request passes through in the order they're registered — each middleware can inspect/modify the request or response, end the cycle by sending a response, or call <code>next()</code> to pass control to the next one. Order matters critically: middleware registered earlier runs first, and a middleware that never calls <code>next()</code> or sends a response leaves the request hanging forever. Error-handling middleware is distinguished by having <em>four</em> parameters (<code>(err, req, res, next)</code>) instead of three, and Express routes any error passed to <code>next(err)</code> straight to the nearest one, skipping all normal middleware in between.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Middleware ordering bugs are a very common, sometimes hard-to-spot real issue — like an auth check registered after the routes it was supposed to protect, silently letting unauthenticated requests through — so this tests both syntax knowledge and the mental model of the request as flowing through an ordered pipeline.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A typical production middleware chain — request logging, then CORS, then body parsing, then auth, then rate limiting, then the actual route handler, then a catch-all error handler — mirrors exactly the layered request lifecycle you'd build in any Express or Laravel-style backend, where getting the auth-before-routes ordering wrong is a real, exploitable security bug, not just a style issue.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Registering an auth middleware after the routes it's meant to protect — Express runs middleware strictly in registration order, so anything above an unprotected route never gets the check applied.</li>
+          <li>Forgetting to call <code>next()</code> in a middleware that doesn't end the response itself, leaving the request hanging until it times out.</li>
+          <li>Writing a normal 3-parameter middleware and expecting it to catch errors — only a 4-parameter function is recognized by Express as error-handling middleware.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I think of Express middleware as a strictly ordered pipeline — each request flows through registered middleware top to bottom, and each one either passes control forward with next() or ends the response. The ordering bug I specifically watch for in code review is auth-related middleware registered after routes it's meant to protect, since anything above that point in the file runs completely unprotected — Express doesn't retroactively apply middleware to routes registered before it. For error handling, I make sure the error-handling middleware — the four-parameter kind — sits at the very end of the chain, and that any async route handler explicitly passes caught errors to next(err) rather than letting them become unhandled rejections."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What happens if a middleware neither calls next() nor sends a response?</li>
+          <li>How does Express distinguish error-handling middleware from regular middleware?</li>
+          <li>Where would you put a rate-limiting middleware relative to auth, and why?</li>
+        </ul>
+
+        <pre><code><span class="kw">const</span> express = <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+app.<span class="fn">use</span>(<span class="fn">requestLogger</span>);          <span class="cmt">// 1. logging first</span>
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());          <span class="cmt">// 2. body parsing</span>
+app.<span class="fn">use</span>(<span class="fn">authenticate</span>);           <span class="cmt">// 3. auth BEFORE any protected route below</span>
+
+app.<span class="fn">get</span>(<span class="str">'/bookings'</span>, (req, res) => { res.<span class="fn">json</span>(req.user.bookings); });
+
+<span class="cmt">// Error-handling middleware — 4 params, always LAST</span>
+app.<span class="fn">use</span>((err, req, res, next) => {
+  <span class="fn">logError</span>(err);
+  res.<span class="fn">status</span>(<span class="num">500</span>).<span class="fn">json</span>({ error: <span class="str">'Something went wrong'</span> });
+});
+
+<span class="cmt">// Async handler must forward caught errors — Express doesn't auto-catch promise rejections</span>
+app.<span class="fn">get</span>(<span class="str">'/camps/:id'</span>, <span class="kw">async</span> (req, res, next) => {
+  <span class="kw">try</span> { res.<span class="fn">json</span>(<span class="kw">await</span> <span class="fn">getCamp</span>(req.params.id)); }
+  <span class="kw">catch</span> (err) { <span class="fn">next</span>(err); }
+});</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Register cross-cutting middleware (logging, parsing, auth) before any route that depends on it — order is not cosmetic.</li>
+          <li>Always forward caught async errors to next(err) rather than letting them become unhandled rejections.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 4 ============ -->
+      <section class="topic" data-topic="4" id="t4">
+        <div class="topic-head">
+          <h2><span class="tagnum">04.</span> REST API Design: Status Codes, Versioning, Pagination</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="4">☆</button>
+            <button class="check-btn" data-ck="4">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> REST maps operations onto HTTP methods and status codes rather than inventing custom verbs: <code>GET</code> (read, safe/idempotent), <code>POST</code> (create), <code>PUT</code> (full replace, idempotent), <code>PATCH</code> (partial update), <code>DELETE</code> (remove, idempotent). Status codes communicate outcome precisely: <strong>2xx</strong> success (<code>200</code> OK, <code>201</code> Created, <code>204</code> No Content), <strong>4xx</strong> client error (<code>400</code> bad request/validation, <code>401</code> unauthenticated, <code>403</code> unauthorized/forbidden, <code>404</code> not found, <code>409</code> conflict, <code>422</code> unprocessable entity, <code>429</code> too many requests), <strong>5xx</strong> server error (<code>500</code> internal error, <code>503</code> unavailable). <strong>Versioning</strong> (URL path <code>/v1/</code>, a header, or content negotiation) lets an API evolve without breaking existing clients. <strong>Pagination</strong>, <strong>filtering</strong>, and <strong>sorting</strong> are typically exposed via query parameters (<code>?page=2&amp;sort=-created_at&amp;status=active</code>) rather than baked into the URL path.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>API design consistency is what makes an API pleasant or painful for every consumer forever — this is a fast way to check whether a candidate has internalized real conventions (correct status code per situation, idempotency semantics) versus just returning <code>200</code> for everything with an error message buried in the body.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Designing the booking creation endpoint means returning <code>201</code> with the created resource (not <code>200</code>), <code>409</code> specifically if the slot was already booked by someone else (a genuine conflict, distinct from generic validation failure), and <code>422</code> for a malformed request body — precise enough that the frontend team consuming your API (or a mobile client, or another service) can handle each case programmatically instead of parsing error message strings.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Returning <code>200</code> for everything, including actual errors, with the real status buried in a JSON body — breaks HTTP-level tooling (caching, monitoring, client error handling) that relies on the status code itself.</li>
+          <li>Using <code>PUT</code> for a partial update (should be <code>PATCH</code>) or making <code>POST</code> idempotent when the semantics require each call to genuinely create something new — violates what clients and intermediaries (like retry logic) correctly assume about each verb.</li>
+          <li>Not versioning an API at all, or breaking existing consumers with a non-backward-compatible change under the same version — a real production incident, not a theoretical concern, the moment there's more than one client.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I treat the status code as part of the actual API contract, not decoration — 201 with the created resource on a successful POST, 409 specifically for a real conflict like a double-booked slot versus a generic 422 for a malformed request, 401 versus 403 depending on whether the problem is 'who are you' versus 'you can't do that.' That precision matters because clients — a frontend, a mobile app, another service — can branch on the status code programmatically instead of parsing an error message string. For versioning, I default to a URL path version from day one, even before there's a second client, because retrofitting versioning onto a live API with real consumers is a much harder migration than starting with it."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's the difference between 401 and 403, concretely?</li>
+          <li>Why does idempotency matter for PUT and DELETE specifically?</li>
+          <li>How would you introduce a breaking change to an API that already has real consumers?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Precise status codes as part of the actual contract</span>
+app.<span class="fn">post</span>(<span class="str">'/v1/bookings'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { error } = <span class="fn">validateBooking</span>(req.body);
+  <span class="kw">if</span> (error) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">422</span>).<span class="fn">json</span>({ error: error.message });
+
+  <span class="kw">const</span> available = <span class="kw">await</span> <span class="fn">checkAvailability</span>(req.body.campId, req.body.date);
+  <span class="kw">if</span> (!available) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">409</span>).<span class="fn">json</span>({ error: <span class="str">'Slot already booked'</span> });
+
+  <span class="kw">const</span> booking = <span class="kw">await</span> <span class="fn">createBooking</span>(req.body);
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>(booking); <span class="cmt">// 201, not 200 — a resource was created</span>
+});
+
+<span class="cmt">// Query-param based pagination/filtering/sorting, not baked into the path</span>
+<span class="cmt">// GET /v1/bookings?page=2&per_page=20&status=confirmed&sort=-created_at</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Use the status code precisely as part of the contract; don't collapse everything to 200/500.</li>
+          <li>Version from the start of a public/multi-consumer API, even before a second client exists.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 5 ============ -->
+      <section class="topic" data-topic="5" id="t5">
+        <div class="topic-head">
+          <h2><span class="tagnum">05.</span> Authentication: JWT vs Sessions vs OAuth</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="5">☆</button>
+            <button class="check-btn" data-ck="5">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Session-based auth</strong> stores session state server-side (in memory, Redis, or a DB), with the client holding only an opaque session ID cookie — the server can instantly invalidate a session, but requires shared/centralized session storage across multiple server instances. <strong>JWT-based auth</strong> is stateless — the token itself carries the claims (user ID, role, expiry), cryptographically signed so the server can verify it without a database lookup, which scales horizontally without shared session storage, but at the real cost that a JWT can't be instantly revoked before its expiry without adding back some form of server-side state (a blocklist), which partially defeats the "stateless" benefit. <strong>OAuth 2.0</strong> is a different problem entirely — it's a delegation protocol for letting a user grant a third-party application limited access to their data on another service (like "Sign in with Google") without sharing their actual password with that third party, via access/refresh tokens exchanged through a defined flow.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Conflating these three is extremely common, and the interviewer is checking whether you understand the actual trade-offs (statelessness vs instant revocation) rather than just "JWT is modern, sessions are old" — a real architectural decision, not a fashion choice.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>For an API serving both a web frontend and a mobile app (a common shape for a booking platform), JWTs are the natural fit since they don't require sticky sessions or shared session storage across server instances — but that means building in a short access-token expiry plus a refresh-token rotation flow specifically to bound how long a stolen or compromised token stays valid, since you've given up instant server-side revocation as the trade-off for statelessness.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Treating JWTs as instantly revocable the same way sessions are — without extra infrastructure (a blocklist, short expiry + refresh rotation), a leaked JWT stays valid until it naturally expires, full stop.</li>
+          <li>Storing sensitive data unencrypted in a JWT payload — JWTs are signed (tamper-evident) but not encrypted by default, so the payload is readable by anyone who has the token, including the end user.</li>
+          <li>Confusing OAuth (delegated third-party authorization) with your own application's primary authentication mechanism — OAuth solves "let this app access your Google data," not "how does my app know who you are" on its own, though OIDC (built on OAuth) does address that specifically.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"The real trade-off between sessions and JWTs is statelessness versus revocation control — sessions let me kill access instantly by deleting server-side state, JWTs scale without shared session storage but can't be revoked before expiry without adding that state back in some form, like a short-lived access token paired with a refresh token I can invalidate. So for a JWT setup I keep access tokens short-lived — minutes, not days — specifically to bound the damage window if one leaks. OAuth is solving a different problem entirely — letting a user grant a third-party app limited access to their data elsewhere without handing over their password — it's not a replacement for my own app's session/token strategy, though I'd use an OIDC flow on top of it if I wanted 'Sign in with Google' as an actual authentication method."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>How would you revoke a JWT before its natural expiry?</li>
+          <li>Is a JWT's payload encrypted? What are the implications of that?</li>
+          <li>What's the difference between OAuth and OIDC?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// JWT: short-lived access token + longer-lived, revocable refresh token</span>
+<span class="kw">const</span> accessToken = jwt.<span class="fn">sign</span>({ userId, role }, SECRET, { expiresIn: <span class="str">'15m'</span> });
+<span class="kw">const</span> refreshToken = jwt.<span class="fn">sign</span>({ userId }, REFRESH_SECRET, { expiresIn: <span class="str">'7d'</span> });
+<span class="cmt">// refreshToken's ID stored server-side — CAN be revoked/rotated on logout or compromise</span>
+
+<span class="cmt">// Middleware verifying the access token — no DB lookup needed, that's the "stateless" part</span>
+<span class="kw">function</span> <span class="fn">authenticate</span>(req, res, next) {
+  <span class="kw">try</span> {
+    req.user = jwt.<span class="fn">verify</span>(req.headers.authorization?.<span class="fn">split</span>(<span class="str">' '</span>)[<span class="num">1</span>], SECRET);
+    <span class="fn">next</span>();
+  } <span class="kw">catch</span> { res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid or expired token'</span> }); }
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Keep JWT access tokens short-lived; use a revocable refresh token to bound the damage window of a leaked token.</li>
+          <li>Never put sensitive data unencrypted in a JWT payload — treat it as readable, not private.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 6 ============ -->
+      <section class="topic" data-topic="6" id="t6">
+        <div class="topic-head">
+          <h2><span class="tagnum">06.</span> Rate Limiting &amp; API Security (Helmet, CORS, Validation)</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="6">☆</button>
+            <button class="check-btn" data-ck="6">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> <strong>Rate limiting</strong> caps how many requests a client can make in a time window (typically tracked by IP or authenticated user ID in Redis), protecting against abuse, brute-force attacks, and accidental client bugs that hammer an endpoint — responding with <code>429 Too Many Requests</code> once exceeded. <strong>CORS</strong> (Cross-Origin Resource Sharing) is a browser-enforced security mechanism — the server explicitly declares (via headers) which origins are allowed to make requests to it; without correct CORS headers, browsers block cross-origin JS requests by default, which is a feature, not a bug to "fix" by allowing all origins carelessly. <strong>Helmet</strong> is an Express middleware that sets a collection of security-related HTTP headers (preventing clickjacking, disabling MIME-sniffing, enforcing HTTPS, etc.) with sensible defaults in one line. <strong>Input validation</strong> at the API boundary (checking types, formats, ranges before any business logic runs) is the first line of defense against malformed data and a wide class of injection-style attacks.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>These are the concrete, checklist-level security practices every production API needs, and they're highly practical — an interviewer testing "have you actually shipped and hardened a real API" versus only ever run it locally with no adversarial traffic.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Rate limiting the login endpoint specifically (tighter than general API rate limits) is a direct defense against credential-stuffing/brute-force attacks, and CORS configured to allow only your actual frontend's origin (not <code>*</code>) prevents a malicious site from making authenticated requests to your API using a logged-in user's browser session/cookies.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Setting CORS to allow all origins (<code>*</code>) as a quick fix for a dev-environment CORS error, then shipping that to production — opens the API to being called from any malicious site.</li>
+          <li>Applying one flat rate limit across the whole API instead of tighter limits on sensitive endpoints (login, password reset) where brute-force risk is highest.</li>
+          <li>Trusting client-side validation alone and skipping server-side validation — client-side checks are a UX nicety, not a security boundary, since they're trivially bypassed by anyone calling the API directly.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I treat these as layered, not optional extras bolted on later. CORS gets configured to allow only the actual known frontend origins, never a wildcard in production, since it's specifically there to stop a malicious site from riding a user's authenticated session. Rate limiting isn't one flat number across the API — auth endpoints like login get a much tighter limit given the brute-force risk. And validation always happens server-side regardless of what the client already checks, because client-side validation is a UX convenience, not a security boundary — anyone can call the API directly and skip the frontend entirely."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Why is client-side validation not sufficient on its own?</li>
+          <li>What specific risk does allowing CORS from '*' introduce?</li>
+          <li>Why would you rate-limit the login endpoint more tightly than a general read endpoint?</li>
+        </ul>
+
+        <pre><code><span class="kw">const</span> helmet = <span class="fn">require</span>(<span class="str">'helmet'</span>);
+<span class="kw">const</span> cors = <span class="fn">require</span>(<span class="str">'cors'</span>);
+<span class="kw">const</span> rateLimit = <span class="fn">require</span>(<span class="str">'express-rate-limit'</span>);
+
+app.<span class="fn">use</span>(<span class="fn">helmet</span>()); <span class="cmt">// sensible security headers, one line</span>
+
+app.<span class="fn">use</span>(<span class="fn">cors</span>({ origin: <span class="str">'https://campvine.com'</span> })); <span class="cmt">// explicit origin, never '*' in production</span>
+
+<span class="cmt">// General API limit</span>
+app.<span class="fn">use</span>(<span class="fn">rateLimit</span>({ windowMs: <span class="num">60_000</span>, max: <span class="num">100</span> }));
+
+<span class="cmt">// Much tighter limit specifically on the login endpoint — brute-force defense</span>
+app.<span class="fn">post</span>(<span class="str">'/login'</span>, <span class="fn">rateLimit</span>({ windowMs: <span class="num">60_000</span>, max: <span class="num">5</span> }), <span class="fn">loginHandler</span>);</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Set CORS to explicit known origins, never a wildcard, in any production API handling authenticated requests.</li>
+          <li>Apply tighter, endpoint-specific rate limits to sensitive actions (login, password reset, payment) beyond the general API limit.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 7 ============ -->
+      <section class="topic" data-topic="7" id="t7">
+        <div class="topic-head">
+          <h2><span class="tagnum">07.</span> Caching Strategies &amp; CDNs</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="7">☆</button>
+            <button class="check-btn" data-ck="7">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> Caching exists at multiple layers, each solving a different problem: <strong>HTTP/browser caching</strong> (<code>Cache-Control</code>, <code>ETag</code> headers) lets the browser or an intermediary skip re-fetching unchanged resources entirely; a <strong>CDN</strong> caches static assets (and sometimes full page responses) at edge locations geographically close to users, cutting latency and origin server load; <strong>application-level caching</strong> (Redis/Memcached) stores computed results or database query output in memory, avoiding repeated expensive work. The three core cache-invalidation strategies: <strong>TTL-based</strong> (expire after a fixed time — simple, but can serve stale data within the window), <strong>event-based/explicit invalidation</strong> (clear the specific cache key when the underlying data changes — precise, but requires remembering every write path that should trigger it), and <strong>cache-aside</strong> (application checks cache first, falls back to the source on a miss and populates the cache — the most common pattern in practice).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Caching is deceptively simple to explain and genuinely hard to get right in practice — "there are only two hard problems in computer science: cache invalidation and naming things" is a cliché precisely because stale-cache bugs are so common and often subtle, showing up as "why is this user seeing old data" incidents.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Serving camp listing images and other static assets through a CDN cuts both latency (served from an edge location near the user) and load on the origin server, while the actual camp availability data — which changes — needs a much shorter, deliberately-invalidated cache since serving stale availability could mean showing a slot as open that's already booked.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Caching data that changes frequently with a long TTL "for performance," causing users to see meaningfully stale information without realizing it.</li>
+          <li>Relying purely on TTL expiration for data where staleness has real consequences (like availability or pricing), instead of also explicitly invalidating on the specific write path that changes it.</li>
+          <li>Not setting any HTTP caching headers on genuinely static assets, missing free performance wins that require zero application code.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I think about caching layer by layer — CDN and HTTP caching for genuinely static assets, since that's essentially free performance requiring no invalidation logic at all, and application-level caching with Redis for expensive, frequently-read, infrequently-changing computed data. The TTL length and invalidation strategy depend entirely on how much staleness the data can tolerate — a camp's static description can sit behind a long TTL, but availability data needs either a short TTL or, better, explicit invalidation on the exact write path that changes it, like clearing that cache key the moment a booking is confirmed, since serving stale availability there has a real, visible consequence for a user."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's the difference between cache-aside and write-through caching?</li>
+          <li>How would you decide the right TTL for a specific piece of cached data?</li>
+          <li>What's a cache stampede, and how would you prevent one?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Cache-aside pattern — the most common application-level caching approach</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">getCamp</span>(id) {
+  <span class="kw">const</span> cached = <span class="kw">await</span> redis.<span class="fn">get</span>(<span class="str">`camp:${id}`</span>);
+  <span class="kw">if</span> (cached) <span class="kw">return</span> <span class="kw">JSON</span>.<span class="fn">parse</span>(cached);
+
+  <span class="kw">const</span> camp = <span class="kw">await</span> db.<span class="fn">query</span>(<span class="str">'SELECT * FROM camps WHERE id = ?'</span>, [id]);
+  <span class="kw">await</span> redis.<span class="fn">set</span>(<span class="str">`camp:${id}`</span>, <span class="kw">JSON</span>.<span class="fn">stringify</span>(camp), <span class="str">'EX'</span>, <span class="num">3600</span>);
+  <span class="kw">return</span> camp;
+}
+
+<span class="cmt">// Explicit invalidation on the write path — not relying on TTL alone</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">confirmBooking</span>(campId) {
+  <span class="kw">await</span> db.<span class="fn">query</span>(<span class="str">'UPDATE camp_slots SET available = available - 1 WHERE camp_id = ?'</span>, [campId]);
+  <span class="kw">await</span> redis.<span class="fn">del</span>(<span class="str">`camp:${campId}:availability`</span>); <span class="cmt">// invalidate immediately, don't wait for TTL</span>
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Match TTL length and invalidation strategy to how much real-world staleness the specific data can tolerate.</li>
+          <li>Use a CDN for static assets by default — it's close to a free performance win.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 8 ============ -->
+      <section class="topic" data-topic="8" id="t8">
+        <div class="topic-head">
+          <h2><span class="tagnum">08.</span> Webhooks, Message Queues &amp; Background Jobs</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="8">☆</button>
+            <button class="check-btn" data-ck="8">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>webhook</strong> is a third party pushing an HTTP request to your server when something happens on their end (a payment succeeds, a background check completes) — the inverse of your code polling them for status. A robust webhook handler validates the request's authenticity (typically an HMAC signature check using a shared secret) before trusting the payload, responds quickly (<code>200</code>) to acknowledge receipt, and does the actual processing asynchronously via a <strong>message queue</strong> rather than inline in the request — since the sender will retry on timeout or non-2xx response, and slow inline processing risks that retry firing while the first attempt is still running. <strong>Message queues</strong> (RabbitMQ, SQS, or Laravel's own queue drivers) decouple producers from consumers, buffer load spikes, and enable retry-with-backoff for failed processing. The single non-negotiable property for any of this: <strong>idempotency</strong> — since webhooks and queued jobs can and will be delivered/retried more than once, processing the same event twice must produce the same end state, not a duplicate side effect.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>This is directly your demonstrated production experience — webhook signature validation, async processing, and retry-safe idempotent handling are exactly the skills behind the Yardstik background-check integration, and interviewers use this to separate "has read about webhooks" from "has actually built one that survives real-world retries and partial failures."</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>The background-check webhook handler: verify the HMAC signature against the shared secret first (reject anything that fails), respond <code>200</code> immediately once the payload is validated and queued, then process it asynchronously with an idempotency check (has this specific check ID already been marked complete?) so a duplicate delivery of the same webhook event — which providers explicitly guarantee can happen — doesn't double-process it or send a duplicate notification.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Trusting an incoming webhook payload without verifying its signature — without that check, anyone who discovers the endpoint URL can send fabricated events.</li>
+          <li>Processing a webhook fully inline before responding, risking a timeout that triggers the provider's automatic retry while the first attempt is still mid-processing — a classic cause of duplicate processing.</li>
+          <li>Building a queue consumer without idempotency, assuming "at-least-once delivery" from the queue system means "exactly-once" — most queue systems explicitly guarantee at-least-once, not exactly-once, so duplicates are expected, not an edge case.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"For any webhook I build, the non-negotiables are signature verification before trusting the payload at all, responding fast so the provider doesn't time out and retry while I'm still processing, and doing the real work asynchronously through a queue rather than inline in the request. The property that ties all of it together is idempotency — providers explicitly guarantee at-least-once delivery, not exactly-once, so I design every handler assuming the same event could arrive twice, usually with a check against the event's unique ID before applying any state change, so a duplicate delivery is a safe no-op instead of a duplicate charge or notification."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>Walk through exactly how you'd verify an incoming webhook's authenticity.</li>
+          <li>Why should a webhook handler respond quickly and process asynchronously instead of doing the work inline?</li>
+          <li>How do you make a queued job idempotent in practice — what does the actual check look like?</li>
+        </ul>
+
+        <pre><code><span class="kw">const</span> crypto = <span class="fn">require</span>(<span class="str">'crypto'</span>);
+
+app.<span class="fn">post</span>(<span class="str">'/webhooks/background-check'</span>, express.<span class="fn">raw</span>({ type: <span class="str">'application/json'</span> }), (req, res) => {
+  <span class="kw">const</span> signature = req.headers[<span class="str">'x-signature'</span>];
+  <span class="kw">const</span> expected = crypto.<span class="fn">createHmac</span>(<span class="str">'sha256'</span>, WEBHOOK_SECRET).<span class="fn">update</span>(req.body).<span class="fn">digest</span>(<span class="str">'hex'</span>);
+  <span class="kw">if</span> (signature !== expected) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">end</span>(); <span class="cmt">// reject unverified payloads</span>
+
+  <span class="kw">const</span> event = <span class="kw">JSON</span>.<span class="fn">parse</span>(req.body);
+  <span class="fn">queue</span>.<span class="fn">add</span>(<span class="str">'process-check'</span>, { eventId: event.id, payload: event }); <span class="cmt">// queue it, don't process inline</span>
+  res.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">end</span>(); <span class="cmt">// ack fast — before slow processing happens</span>
+});
+
+<span class="cmt">// Idempotent job processor — safe even if the same event arrives twice</span>
+<span class="kw">async</span> <span class="kw">function</span> <span class="fn">processCheck</span>({ eventId, payload }) {
+  <span class="kw">const</span> alreadyProcessed = <span class="kw">await</span> db.<span class="fn">exists</span>(<span class="str">'processed_events'</span>, eventId);
+  <span class="kw">if</span> (alreadyProcessed) <span class="kw">return</span>; <span class="cmt">// safe no-op on duplicate delivery</span>
+  <span class="kw">await</span> <span class="fn">applyCheckResult</span>(payload);
+  <span class="kw">await</span> db.<span class="fn">insert</span>(<span class="str">'processed_events'</span>, { eventId });
+}</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Always verify webhook signatures before trusting any payload data.</li>
+          <li>Design every queued/webhook-triggered handler assuming at-least-once delivery — idempotency is not optional.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 9 ============ -->
+      <section class="topic" data-topic="9" id="t9">
+        <div class="topic-head">
+          <h2><span class="tagnum">09.</span> Microservices vs Monolith &amp; Service Communication</h2>
+          <div class="topic-controls">
+            <span class="diff senior">SENIOR</span>
+            <button class="star-btn" data-bm="9">☆</button>
+            <button class="check-btn" data-ck="9">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> A <strong>monolith</strong> deploys the entire application as a single unit — simpler to develop, test, deploy, and reason about locally, with easy in-process function calls and straightforward transactions, but everything scales together and a single team's changes can conflict across the whole codebase as it grows. <strong>Microservices</strong> split the system into independently deployable services, each owning its own data — allowing independent scaling and deployment and clearer team ownership boundaries, at the real cost of distributed systems complexity: network calls instead of function calls (which can fail, time out, or arrive out of order), no simple cross-service transactions (needing patterns like the <strong>Saga pattern</strong> instead), and significantly more operational overhead (service discovery, distributed tracing, more complex deployment). Services communicate either <strong>synchronously</strong> (REST/gRPC — simple, but creates tight coupling and cascading failure risk if a downstream service is slow/down) or <strong>asynchronously</strong> via a message queue/event bus (looser coupling, better resilience to a downstream outage, but harder to reason about ordering and consistency).</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Microservices are often reached for prematurely as an assumed "best practice" rather than a genuine trade-off — this topic tests architectural judgment specifically, whether a candidate can articulate real costs (not just benefits) and make a context-dependent call rather than a one-size-fits-all answer.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>A booking platform at the size and team scale you've worked at (sole developer or small team) is a legitimate case for staying a well-structured modular monolith — the DDD/bounded-context work you did on CampVine gets much of microservices' organizational benefit (clear domain boundaries, reduced coupling) without paying the full distributed-systems operational cost, which is exactly the trade-off to be able to articulate rather than assuming microservices are always the "more senior" answer.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Defaulting to microservices for a new project at small team scale, taking on genuine distributed-systems complexity (network failures, no easy cross-service transactions) before there's an actual organizational or scaling need for it.</li>
+          <li>Splitting services along the wrong boundaries — services that constantly need to call each other synchronously for basic operations indicates the boundary itself is probably wrong, and you've mostly just added network latency and failure modes to what was really one cohesive domain.</li>
+          <li>Not having a real answer for cross-service data consistency once split — assuming a distributed transaction "just works" the way a single-database transaction does.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I don't treat microservices as an automatic upgrade from a monolith — a well-structured, modular monolith with clear domain boundaries, which is exactly what a DDD-style refactor gets you, captures a lot of the organizational benefit without the real cost of distributed systems: network calls that can fail or time out where a function call couldn't, and no simple cross-service transaction, needing something like a Saga pattern instead. I'd reach for actual service separation when there's a genuine driver — independent scaling needs for one part of the system, or separate teams that need to deploy independently without blocking each other — not just because it's presented as the more sophisticated architecture."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>What's a concrete signal that a monolith should actually be split into services?</li>
+          <li>How do you handle a transaction that spans two services in a microservices architecture?</li>
+          <li>What's the risk of choosing synchronous service-to-service calls for a critical path?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Synchronous call — simple, but couples availability to the downstream service being up</span>
+<span class="kw">const</span> paymentResult = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://payment-service/charge'</span>, { <span class="cmt">/* ... */</span> });
+
+<span class="cmt">// Asynchronous, event-driven — looser coupling, resilient to payment-service being briefly down</span>
+<span class="fn">eventBus</span>.<span class="fn">publish</span>(<span class="str">'booking.created'</span>, { bookingId, amount });
+<span class="cmt">// payment-service consumes this independently, on its own retry schedule,
+// booking-service doesn't block waiting for a synchronous response</span></code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Split services along real organizational/scaling drivers, not by default — a modular monolith is a legitimate, often correct choice.</li>
+          <li>Prefer async, event-driven communication for anything that doesn't need an immediate synchronous response, to reduce cascading-failure risk.</li>
+        </ul>
+      </section>
+
+      <!-- ============ TOPIC 10 ============ -->
+      <section class="topic" data-topic="10" id="t10">
+        <div class="topic-head">
+          <h2><span class="tagnum">10.</span> WebSockets &amp; Real-Time Systems</h2>
+          <div class="topic-controls">
+            <span class="diff mid">MID</span>
+            <button class="star-btn" data-bm="10">☆</button>
+            <button class="check-btn" data-ck="10">✓</button>
+          </div>
+        </div>
+
+        <p><strong>Explanation.</strong> HTTP is inherently request-response — the client always initiates. Real-time features (chat, live notifications, live availability updates) need the server to be able to push data to the client without waiting for a request. <strong>WebSockets</strong> upgrade an initial HTTP connection into a persistent, full-duplex TCP connection, letting both sides send messages at any time with low overhead per message — the right tool for frequent, bidirectional, low-latency communication. <strong>Server-Sent Events (SSE)</strong> are simpler: a one-way persistent connection where only the server pushes updates over plain HTTP, sufficient when the client never needs to send anything back over that same channel (like a live notification feed). <strong>Long polling</strong> (the client repeatedly requests, server holds the connection open until there's new data or a timeout) is the fallback when WebSockets aren't available, at the cost of more overhead and latency.</p>
+
+        <div class="subhead">Why interviewers ask it</div>
+        <p>Choosing the right real-time mechanism (and knowing WebSockets aren't the automatic right answer for every "live" feature) is a practical architecture decision, and this topic also surfaces whether you understand the operational difference — WebSocket connections are stateful and long-lived, meaning they interact very differently with load balancers and horizontal scaling than stateless HTTP requests do.</p>
+
+        <div class="subhead">Real-world use case</div>
+        <p>Live camp availability updates (so a user sees a slot disappear in real time if someone else books it while they're browsing) is well-served by SSE or a lightweight WebSocket channel, since it's fundamentally server-to-client push with no need for the client to send frequent messages back — versus an actual chat feature between an organizer and a guest, which is genuinely bidirectional and a stronger fit for full WebSockets.</p>
+
+        <div class="subhead mistakes">Common mistakes</div>
+        <ul>
+          <li>Reaching for WebSockets for a feature that's actually one-directional (server pushing updates only), adding bidirectional complexity that SSE would have handled more simply.</li>
+          <li>Not accounting for WebSocket connections being stateful when scaling horizontally — a message needs to reach the specific server instance holding that user's open connection, which plain round-robin load balancing doesn't guarantee, requiring a pub/sub layer (like Redis) to broadcast across instances.</li>
+          <li>Not planning for reconnection — a dropped WebSocket connection (network blip, server restart) needs explicit client-side reconnect logic; it doesn't recover automatically like a stateless HTTP request retry would.</li>
+        </ul>
+
+        <div class="subhead">Interview answer</div>
+        <div class="callout">"I pick the real-time mechanism based on directionality first — if it's genuinely server-to-client only, like a live notification feed or availability updates, Server-Sent Events are simpler than a full WebSocket and I don't need the bidirectional complexity. True two-way, frequent communication, like a chat feature, is where WebSockets earn their cost. The operational detail that trips people up scaling either one is that these connections are stateful and long-lived — unlike a stateless HTTP request, a message has to reach the specific server instance holding that user's open connection, so horizontal scaling needs a pub/sub layer like Redis to broadcast messages across instances rather than relying on the load balancer alone."</div>
+
+        <div class="subhead">Follow-up questions</div>
+        <ul class="followups">
+          <li>When would SSE be a better fit than a full WebSocket connection?</li>
+          <li>Why does horizontally scaling a WebSocket server need a pub/sub layer like Redis?</li>
+          <li>How would you handle a dropped WebSocket connection on the client?</li>
+        </ul>
+
+        <pre><code><span class="cmt">// Server-Sent Events — simple one-way push, plain HTTP, no upgrade needed</span>
+app.<span class="fn">get</span>(<span class="str">'/availability-stream'</span>, (req, res) => {
+  res.<span class="fn">setHeader</span>(<span class="str">'Content-Type'</span>, <span class="str">'text/event-stream'</span>);
+  <span class="kw">const</span> unsubscribe = <span class="fn">onAvailabilityChange</span>(update => {
+    res.<span class="fn">write</span>(<span class="str">`data: ${JSON.stringify(update)}\n\n`</span>);
+  });
+  req.<span class="fn">on</span>(<span class="str">'close'</span>, unsubscribe);
+});
+
+<span class="cmt">// WebSocket + Redis pub/sub — required for horizontal scaling across instances</span>
+io.<span class="fn">on</span>(<span class="str">'connection'</span>, (socket) => {
+  socket.<span class="fn">join</span>(<span class="str">`camp:${socket.handshake.query.campId}`</span>);
+});
+<span class="cmt">// Any server instance publishes; Redis broadcasts to whichever instance
+// actually holds the relevant client's socket connection</span>
+redisSubscriber.<span class="fn">on</span>(<span class="str">'message'</span>, (channel, message) => {
+  io.<span class="fn">to</span>(channel).<span class="fn">emit</span>(<span class="str">'update'</span>, <span class="kw">JSON</span>.<span class="fn">parse</span>(message));
+});</code><button class="copy-btn">copy</button></pre>
+
+        <div class="subhead best">Best practices</div>
+        <ul>
+          <li>Choose SSE over WebSockets for purely one-directional server-push features — simpler infrastructure, same result.</li>
+          <li>Plan for horizontal scaling (pub/sub broadcast) and client reconnection logic from the start, not as an afterthought once real traffic hits.</li>
+        </ul>
+      </section>
+
+      <!-- ============ RAPID FIRE ============ -->
+      <section class="topic" id="rapidfire">
+        <div class="topic-head"><h2><span class="tagnum">⚡</span> Rapid-Fire Q&amp;A — Node.js &amp; Backend Design</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">Click any question to reveal a tight, interview-ready answer.</p>
+        <div class="rapid-grid" id="rapid-grid"></div>
+      </section>
+
+      <!-- ============ CHEAT SHEET ============ -->
+      <section class="topic" id="cheatsheet-section">
+        <div class="topic-head"><h2><span class="tagnum">📋</span> Printable Revision Cheat Sheet</h2></div>
+        <p style="color:var(--text-dim); font-size:13.5px;">One line per concept — for the 10 minutes before you walk in.</p>
+        <div class="cheatsheet">
+          <table>
+            <tr><th>Concept</th><th>One-line answer</th></tr>
+            <tr><td>Node event loop phases</td><td>timers → pending callbacks → poll → check (setImmediate) → close callbacks.</td></tr>
+            <tr><td>nextTick vs Promise microtask</td><td>process.nextTick drains first, before Promise .then callbacks, between every phase.</td></tr>
+            <tr><td>Node "non-blocking" caveat</td><td>Only I/O is async — CPU-bound sync code still fully blocks the single thread.</td></tr>
+            <tr><td>Stream vs loading fully</td><td>Streams process in chunks — constant memory regardless of file/data size.</td></tr>
+            <tr><td>Backpressure</td><td>Pausing a fast producer when a slow consumer can't keep up — .pipe() handles it automatically.</td></tr>
+            <tr><td>Middleware order</td><td>Runs strictly top-to-bottom as registered — auth must be registered before protected routes.</td></tr>
+            <tr><td>Error middleware signature</td><td>4 params (err, req, res, next) — only this form is recognized as an error handler.</td></tr>
+            <tr><td>201 vs 200</td><td>201: resource created (POST success). 200: generic success.</td></tr>
+            <tr><td>401 vs 403</td><td>401: who are you (unauthenticated). 403: I know who you are, you can't do this.</td></tr>
+            <tr><td>409 Conflict</td><td>Request conflicts with current state — e.g. slot already booked.</td></tr>
+            <tr><td>Session vs JWT</td><td>Session: server-side state, instant revocation. JWT: stateless, scales easier, can't instantly revoke.</td></tr>
+            <tr><td>OAuth</td><td>Delegated third-party authorization ("let this app access your Google data") — not your own app's login system by itself.</td></tr>
+            <tr><td>CORS '*' risk</td><td>Lets any site make authenticated cross-origin requests using a user's session — avoid in production.</td></tr>
+            <tr><td>Client-side validation</td><td>UX convenience only — never a security boundary; server must always re-validate.</td></tr>
+            <tr><td>Cache-aside pattern</td><td>Check cache first, fall back to source on miss, populate cache — most common pattern.</td></tr>
+            <tr><td>Webhook signature check</td><td>HMAC-verify before trusting any payload — otherwise anyone can fake events.</td></tr>
+            <tr><td>At-least-once delivery</td><td>Queues/webhooks guarantee this, not exactly-once — idempotency is mandatory, not optional.</td></tr>
+            <tr><td>Monolith vs microservices</td><td>Split for a real scaling/team driver, not by default — monolith avoids distributed-systems cost.</td></tr>
+            <tr><td>Saga pattern</td><td>Manages a transaction spanning multiple services without a single distributed transaction.</td></tr>
+            <tr><td>WebSocket horizontal scaling</td><td>Needs pub/sub (e.g. Redis) to reach a user's connection on a specific server instance.</td></tr>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="part-footer">
+      <div class="next"><b>Next up</b>Choose Part 6 (System Design) or Part 7 (HR + Project Stories) to finish the handbook</div>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-faint);">Part 3 of 7 · Node.js &amp; Backend Design · complete</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const typedEl = document.getElementById('typed');
+const typedText = "$ node -e \"require('interview-prep').chapter(3)\"";
+let ti = 0;
+function typeStep(){
+  if(ti <= typedText.length){ typedEl.textContent = typedText.slice(0, ti); ti++; setTimeout(typeStep, 18); }
+}
+typeStep();
+
+const topics = [
+  {id:1, title:"Node's Event Loop Phases & libuv"},
+  {id:2, title:'Streams & Buffers'},
+  {id:3, title:'Express Middleware & Request Lifecycle'},
+  {id:4, title:'REST API Design: Status Codes & Versioning'},
+  {id:5, title:'Authentication: JWT vs Sessions vs OAuth'},
+  {id:6, title:'Rate Limiting & API Security'},
+  {id:7, title:'Caching Strategies & CDNs'},
+  {id:8, title:'Webhooks, Queues & Background Jobs'},
+  {id:9, title:'Microservices vs Monolith'},
+  {id:10, title:'WebSockets & Real-Time Systems'},
+];
+
+const tocEl = document.getElementById('toc');
+topics.forEach(t=>{
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="#t${t.id}" data-toc="${t.id}">${String(t.id).padStart(2,'0')}. ${t.title}</a>`;
+  tocEl.appendChild(li);
+});
+
+const LS_CHECK = 'ip_ch3_checked';
+const LS_BOOKMARK = 'ip_ch3_bookmarks';
+const getChecked = () => JSON.parse(localStorage.getItem(LS_CHECK) || '[]');
+const setChecked = (arr) => localStorage.setItem(LS_CHECK, JSON.stringify(arr));
+const getBookmarks = () => JSON.parse(localStorage.getItem(LS_BOOKMARK) || '[]');
+const setBookmarks = (arr) => localStorage.setItem(LS_BOOKMARK, JSON.stringify(arr));
+
+function refreshProgress(){
+  const checked = getChecked();
+  document.getElementById('progress-text').textContent = `${checked.length} / ${topics.length}`;
+  document.getElementById('progress-fill').style.width = (checked.length/topics.length*100) + '%';
+  document.querySelectorAll('.check-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-ck');
+    btn.classList.toggle('active', checked.includes(id));
+  });
+  document.querySelectorAll('.toc a[data-toc]').forEach(a=>{
+    a.classList.toggle('done', checked.includes(a.getAttribute('data-toc')));
+  });
+}
+
+function refreshBookmarks(){
+  const bm = getBookmarks();
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    const id = btn.getAttribute('data-bm');
+    btn.classList.toggle('active', bm.includes(id));
+    btn.textContent = bm.includes(id) ? '★' : '☆';
+  });
+  const list = document.getElementById('bookmark-list');
+  if(bm.length === 0){
+    list.innerHTML = '<li style="padding-left:8px; color:var(--text-faint); font-size:12px;">None yet — click ☆ on any topic.</li>';
+    return;
+  }
+  list.innerHTML = bm.map(id=>{
+    const t = topics.find(t=>String(t.id)===String(id));
+    return t ? `<li><a href="#t${t.id}">★ ${t.title}</a></li>` : '';
+  }).join('');
+}
+
+document.querySelectorAll('.check-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-ck');
+    let checked = getChecked();
+    checked = checked.includes(id) ? checked.filter(x=>x!==id) : [...checked, id];
+    setChecked(checked);
+    refreshProgress();
+  });
+});
+
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-bm');
+    let bm = getBookmarks();
+    bm = bm.includes(id) ? bm.filter(x=>x!==id) : [...bm, id];
+    setBookmarks(bm);
+    refreshBookmarks();
+  });
+});
+
+refreshProgress();
+refreshBookmarks();
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const codeText = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(codeText).then(()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(()=> btn.textContent = orig, 1200);
+    });
+  });
+});
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('section.topic[data-topic]').forEach(sec=>{
+    const text = sec.innerText.toLowerCase();
+    sec.style.display = (q === '' || text.includes(q)) ? '' : 'none';
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/' && document.activeElement !== searchInput){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === 'Escape' && document.activeElement === searchInput){
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+
+const rapidFire = [
+  ["What is npm vs npx?", "npm installs and manages packages; npx executes a package's binary directly, downloading it temporarily if not already installed, without a permanent global install."],
+  ["What is the difference between process.env and a .env file?", "process.env is Node's live runtime environment variables object; a .env file is a convention (loaded via a package like dotenv) for populating process.env from a local file during development."],
+  ["What does cluster module do in Node?", "Spawns multiple worker processes (one per CPU core typically) that share the same server port, letting a single Node app use multiple cores since one Node process is otherwise single-threaded."],
+  ["What's the difference between exports and module.exports?", "module.exports is the actual object returned by require(); exports is just a reference to it — reassigning exports directly breaks that reference, so always use module.exports for exporting a single value."],
+  ["What is an unhandled promise rejection, and what does Node do about it?", "A rejected promise with no .catch() or try/catch around its await — by default modern Node terminates the process, since an unhandled rejection likely indicates a real, unaddressed error."],
+  ["What's the difference between PUT and PATCH?", "PUT replaces the entire resource; PATCH applies a partial update to specific fields only."],
+  ["What does idempotent mean for an HTTP method?", "Calling it multiple times has the same effect as calling it once — GET, PUT, and DELETE are idempotent by definition; POST is not."],
+  ["What is a reverse proxy, and why put one in front of a Node app?", "A server (like Nginx) that sits in front of the app, handling SSL termination, load balancing, static file serving, and request buffering before forwarding to the actual application server."],
+  ["What's the difference between horizontal and vertical scaling for an API server?", "Vertical: bigger single server (more CPU/RAM). Horizontal: more server instances behind a load balancer — horizontal has a higher ceiling but adds complexity like needing stateless servers or shared session storage."],
+  ["What is circuit breaker pattern used for?", "Stops repeatedly calling a downstream service that's failing, failing fast instead and giving the downstream service time to recover, rather than piling up more failing requests."],
+  ["What does 'stateless' mean for an API server, and why does it matter for scaling?", "Each request contains everything needed to process it, with no server-side session data tied to a specific instance — lets any server instance handle any request, which is required for simple horizontal scaling behind a load balancer."],
+  ["What is the difference between authentication and authorization, in one line?", "Authentication: confirming who you are. Authorization: confirming what you're allowed to do."],
+  ["What's a race condition, concretely?", "Two or more operations access/modify shared state concurrently in a way where the final outcome depends on unpredictable timing — like two requests both reading 'available' before either writes 'booked'."],
+  ["What does graceful shutdown mean for a Node server?", "Stopping acceptance of new requests, finishing in-flight requests, and cleanly closing DB/queue connections before the process exits, instead of abruptly killing active work."],
+  ["What is a health check endpoint used for?", "A simple endpoint (e.g. /health) load balancers and orchestration tools poll to determine if an instance is alive and ready to receive traffic, removing unhealthy instances from rotation automatically."],
+  ["What's the difference between vertical and horizontal database sharding in a backend context?", "Not applicable to sharding directly — but relevant: a backend's statelessness determines whether it can scale horizontally at all, independent of how its database scales."],
+  ["What is CSRF, and how is it different from CORS?", "CSRF is an attack tricking a logged-in user's browser into making an unwanted request; CORS is a browser security mechanism controlling which origins can make cross-origin requests at all — CORS can help mitigate CSRF but they're solving different problems."],
+  ["What does 'at-most-once' vs 'at-least-once' vs 'exactly-once' delivery mean?", "At-most-once: might be lost, never duplicated. At-least-once: never lost, might be duplicated (most common, needs idempotency). Exactly-once: neither — genuinely hard to guarantee in distributed systems."],
+  ["Why use environment variables for configuration instead of hardcoding values?", "Lets the same codebase run correctly across dev/staging/production with different secrets/URLs/settings, and keeps secrets out of version control."],
+  ["What is connection pooling, and why does a Node app need it for its database?", "Reuses a limited set of open DB connections across requests instead of opening a new one per request, since establishing a connection has real overhead that would otherwise happen on every single request."],
+  ["What does the term 'zero-downtime deployment' mean?", "Deploying new code without any period where the service is unavailable — typically via rolling restarts across multiple instances, so some instances always keep serving traffic."],
+  ["What's the difference between a 502 and a 504 status code?", "502 Bad Gateway: an upstream server returned an invalid response. 504 Gateway Timeout: the upstream server didn't respond in time at all."],
+  ["What is the purpose of a load balancer's sticky sessions setting?", "Routes a given client's requests to the same backend instance consistently — needed for stateful connections like WebSockets, but generally avoided for stateless REST APIs since it undermines even load distribution."],
+  ["Why might you choose gRPC over REST for internal service-to-service communication?", "Faster binary serialization (Protocol Buffers) and strongly-typed contracts between services, at the cost of being less human-readable/debuggable and less universally supported by browsers directly than JSON over REST."],
+  ["What does 'fail fast' mean as a backend design principle?", "Detecting and surfacing an error immediately rather than letting it propagate silently — e.g. validating input at the API boundary rather than deep inside business logic where the failure is harder to trace back."],
+];
+const grid = document.getElementById('rapid-grid');
+rapidFire.forEach(([q,a])=>{
+  const d = document.createElement('details');
+  d.className = 'qa';
+  d.innerHTML = `<summary>${q}</summary><div class="ans">${a}</div>`;
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>
